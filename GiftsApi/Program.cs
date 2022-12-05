@@ -1,8 +1,10 @@
 using System.Text;
 using Azure.Data.Tables;
 using Azure.Identity;
+using GiftsApi.Auth;
 using GiftsApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +28,6 @@ builder.Services.AddScoped<TableClient>((services) => {
 
 // service helpers
 builder.Services.AddScoped(typeof(Services<>));
-builder.Services.AddScoped<GiftServices>();
 
 // auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -44,6 +45,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.JwtKey))
         };
     });
+builder.Services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, GroupAuthorizationPasswordHandler>();
 
 
 builder.Services.AddControllers();

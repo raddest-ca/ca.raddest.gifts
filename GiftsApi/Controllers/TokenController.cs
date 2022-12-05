@@ -4,7 +4,6 @@ using System.Text;
 using GiftsApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using BC = BCrypt.Net.BCrypt;
 namespace GiftsApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
@@ -26,7 +25,7 @@ public class TokenController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Payload request)
     {
-        var user = await _services.GiftServices.GetUserByUsername(request.Username);
+        var user = await _services.TableClient.GetUserByUsernameAsync(request.Username);
         if (user == null)
         {
             return NotFound();

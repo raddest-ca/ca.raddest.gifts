@@ -1,3 +1,6 @@
+using Azure.Data.Tables;
+using Microsoft.AspNetCore.Authorization;
+
 namespace GiftsApi.Services;
 
 public class Services<T>
@@ -5,15 +8,18 @@ public class Services<T>
     public Services(
         ILogger<T> logger,
         AppConfig config,
-        GiftServices giftServices
-    ) {
+        TableClient tableClient,
+        IAuthorizationService authService
+    )
+    {
         Logger = logger;
         Config = config;
-        GiftServices = giftServices;
+        TableClient = tableClient;
+        AuthService = authService;
     }
 
-    public readonly ILogger<T> Logger;
-    public readonly AppConfig Config;
-
-    public readonly GiftServices GiftServices;
+    public ILogger<T> Logger { get; }
+    public AppConfig Config { get; }
+    public TableClient TableClient { get; }
+    public IAuthorizationService AuthService { get; }
 }

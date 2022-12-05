@@ -20,6 +20,8 @@ public class Group : ITableEntity
     public string DisplayName { get; set; }
     public string Password { get; set; }
 
+    public HashSet<Guid> Members {get; set;}
+
     [IgnoreDataMember]
     public Guid Id
     {
