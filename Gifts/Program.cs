@@ -1,4 +1,5 @@
 
+using System.Net;
 using System.Text;
 using Azure.Data.Tables;
 using Azure.Identity;
@@ -21,7 +22,8 @@ builder.Configuration.Bind(config);
 builder.Services.AddSingleton<AppConfig>(config);
 
 // data persistence
-builder.Services.AddScoped<TableClient>((services) => {
+builder.Services.AddScoped<TableClient>((services) =>
+{
     var config = services.GetService<AppConfig>()!;
     var serviceClient = new TableClient(config.StorageConnectionString, config.StorageTableName);
     return serviceClient;
@@ -32,7 +34,8 @@ builder.Services.AddScoped(typeof(Services<>));
 
 // auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
+    .AddJwtBearer(options =>
+    {
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
@@ -48,7 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, JoinGroupAuthorizationHandler>();
-
+builder.Services.AddSession();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -68,13 +71,36 @@ if (!app.Environment.IsDevelopment())
 else
 {
     app.RunTailwind("css:build", "./");
-    
+
     // app.UseSwagger();
     // app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+
+
+app.UseSession();
+app.Use(async (context, next) =>
+{
+    var token = context.Session.GetString("Token");
+    if (!string.IsNullOrEmpty(token))
+    {
+        context.Request.Headers.Add("Authorization", "Bearer " + token);
+    }
+    await next();
+});
+
 app.UseStaticFiles();
+app.UseStatusCodePages(async context =>
+{
+    var request = context.HttpContext.Request;
+    var response = context.HttpContext.Response;
+
+    if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+    {
+        response.Redirect("/Account/Login");
+    }
+});
 
 app.UseRouting();
 

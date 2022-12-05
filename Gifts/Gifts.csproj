@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <NoWarn>8618</NoWarn>
+    <NoWarn>8618,1998</NoWarn>
   </PropertyGroup>
 
   

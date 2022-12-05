@@ -7,15 +7,30 @@
     <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="bg-slate-400 block w-full">
+    <header class="bg-slate-400 block w-2/3 m-auto p-2">
+        <nav class="inline-block">
             <div>
-                <a class="" asp-area="" asp-controller="Home" asp-action="Index">Gifts</a>
+                <a class="text-xl font-bold font-serif" asp-area="" asp-controller="Home" asp-action="Index">Gifts</a>
+                <a class="underline" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                <a class="underline" asp-area="" asp-controller="Groups" asp-action="Index">My Groups</a>
             </div>
         </nav>
+        @if(!(User.Identity?.IsAuthenticated ?? false))
+        {
+            <div class="inline-block float-right">
+                <a class="underline" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                <a class="underline" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+            </div>
+        }
+        else
+        {
+            <div class="inline-block float-right">
+                Logged in as @User.Identity.Name
+            </div>
+        }
     </header>
-    <div class="container">
-        <main role="main">
+    <div class="w-2/3 m-auto">
+        <main role="main" class="m-2">
             @RenderBody()
         </main>
     </div>

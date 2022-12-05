@@ -3,10 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Gifts.Controllers;
 
-[ApiController]
 [Authorize]
-[Route("api/[controller]")]
-public class GroupsController : ControllerBase
+public class GroupsController : Controller
 {
     private readonly Services<GroupsController> _services;
 
@@ -43,8 +41,7 @@ public class GroupsController : ControllerBase
         return new JsonResult(group);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetGroups()
+    public async Task<IActionResult> Index()
     {
         var items = _services.TableClient.QueryAsync<GroupEntity>(filter: $"PartitionKey eq 'group'").WhereAwait(async groupEntity =>
         {
@@ -52,7 +49,7 @@ public class GroupsController : ControllerBase
             var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
             return authResult.Succeeded;
         });
-        return new JsonResult(await items.ToArrayAsync());
+        return View(await items.ToListAsync());
     }
 
 
