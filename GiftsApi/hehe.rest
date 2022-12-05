@@ -20,6 +20,17 @@ Content-Type: application/json
     "password": "beans"
 }
 
+### create group
+
+POST {{baseUrl}}/api/Groups
+Authorization: Bearer {{login.response.body.*}}
+Content-Type: application/json
+
+{
+    "name": "myGroup",
+    "password": "hehehehaw"
+}
+
 ### get groups
 
 GET {{baseUrl}}/api/Groups

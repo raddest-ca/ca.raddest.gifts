@@ -63,7 +63,7 @@ public class GiftServices
         {
             Id = Guid.NewGuid(),
             DisplayName = payload.Name,
-            Password = payload.Password,
+            Password = BC.HashPassword(payload.Password),
         };
         await _table.AddEntityAsync(group);
         return group;
