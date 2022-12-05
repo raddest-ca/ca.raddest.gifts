@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using GiftsApi.Models;
 using GiftsApi.Services;
 using static GiftsApi.Services.GiftServices;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GiftsApi.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {

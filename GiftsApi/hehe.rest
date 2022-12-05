@@ -1,0 +1,26 @@
+@baseUrl = http://localhost:5177
+
+### create user
+POST {{baseUrl}}/api/User
+Content-Type: application/json
+
+{
+    "username": "teamy",
+    "password": "beans"
+}
+
+### login
+
+# @name login
+POST {{baseUrl}}/api/Token
+Content-Type: application/json
+
+{
+    "username": "teamy",
+    "password": "beans"
+}
+
+### get groups
+
+GET {{baseUrl}}/api/Groups
+Authorization: Bearer {{login.response.body.*}}

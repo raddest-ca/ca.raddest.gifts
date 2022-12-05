@@ -1,26 +1,50 @@
+using System.Text;
 using Azure.Data.Tables;
 using Azure.Identity;
 using GiftsApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add key vault config
 builder.Configuration.AddAzureKeyVault(
     new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
     new DefaultAzureCredential()
 );
-
+// config POCO
 var config = new AppConfig();
 builder.Configuration.Bind(config);
 builder.Services.AddSingleton<AppConfig>(config);
+
+// data persistence
 builder.Services.AddScoped<TableClient>((services) => {
     var config = services.GetService<AppConfig>()!;
     var serviceClient = new TableClient(config.StorageConnectionString, config.StorageTableName);
     return serviceClient;
 });
+
+// service helpers
 builder.Services.AddScoped(typeof(Services<>));
 builder.Services.AddScoped<GiftServices>();
 
-// Add services to the container.
+// auth
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = config.JwtIssuer,
+            ValidAudience = config.JwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.JwtKey))
+        };
+    });
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
