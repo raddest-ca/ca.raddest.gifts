@@ -31,6 +31,18 @@ Content-Type: application/json
     "password": "hehehehaw"
 }
 
+
+### join group
+
+POST {{baseUrl}}/api/Groups/join
+Authorization: Bearer {{login.response.body.*}}
+Content-Type: application/json
+
+{
+    "GroupId": "f2244fff-6d93-4908-9e5e-6e9b21b60e68",
+    "GroupPassword": "hehehehaw"
+}
+
 ### get groups
 
 GET {{baseUrl}}/api/Groups

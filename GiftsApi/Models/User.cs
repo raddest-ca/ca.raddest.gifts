@@ -18,7 +18,6 @@ public class User : ITableEntity
 
     public string RowKey { get; set; }
 
-    [IgnoreDataMember]
     public Guid Id
     {
         get => Guid.Parse(RowKey);

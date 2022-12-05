@@ -31,10 +31,12 @@ public class GroupsController : ControllerBase
             Id = Guid.NewGuid(),
             DisplayName = payload.Name,
             Password = BC.HashPassword(payload.Password),
+            Members = new Guid[] { HttpContext.User.GetUserId()!.Value },
         };
-        
+
         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Create);
-        if (!authResult.Succeeded) {
+        if (!authResult.Succeeded)
+        {
             return new ForbidResult();
         }
 
@@ -81,12 +83,13 @@ public class GroupsController : ControllerBase
         }
 
         var userId = HttpContext.User.GetUserId();
-        if (userId == null) {
+        if (userId == null)
+        {
             return Forbid();
         }
 
         // add user to group
-        group.Members.Add(userId.Value);
+        group.Members = group.Members.Append(userId.Value).ToArray();
         await _services.TableClient.UpdateEntityAsync(group, group.ETag);
         return Ok();
     }
@@ -101,7 +104,8 @@ public class GroupsController : ControllerBase
         }
 
         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Delete);
-        if (!authResult.Succeeded) {
+        if (!authResult.Succeeded)
+        {
             return new ForbidResult();
         }
 
