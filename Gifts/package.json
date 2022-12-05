@@ -1,0 +1,16 @@
+{
+  "name": "gifts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "css:build": "npx tailwind build -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.8",
+    "tailwindcss": "^0.0.0-insiders.5d49498"
+  }
+}
