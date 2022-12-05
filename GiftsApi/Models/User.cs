@@ -5,20 +5,18 @@ using Azure.Data.Tables;
 
 namespace GiftsApi.Models;
 
-public class Group : ITableEntity
+public class User : ITableEntity
 {
+
     public string PartitionKey {
-        get => "group";
+        get => "user";
         set {
-            if (value != "group")
+            if (value != "user")
                 throw new System.NotImplementedException(value);
         }
     }
 
     public string RowKey { get; set; }
-
-    public string DisplayName { get; set; }
-    public string Password { get; set; }
 
     [IgnoreDataMember]
     public Guid Id
@@ -27,7 +25,9 @@ public class Group : ITableEntity
         set => RowKey = value.ToString();
     }
 
+    public string Username { get; set; }
+    public string DisplayName { get; set; }
+    public string Password { get; set; }
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
-

@@ -1,35 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
 using GiftsApi.Models;
+using GiftsApi.Services;
+using static GiftsApi.Services.GiftServices;
 
 namespace GiftsApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
-    private readonly ILogger<GroupsController> _logger;
+    private readonly Services<GroupsController> _services;
 
-    public GroupsController(ILogger<GroupsController> logger)
+    public GroupsController(Services<GroupsController> services)
     {
-        _logger = logger;
+        _services = services;
     }
 
-    [HttpGet(Name="GetGroups")]
-    public IEnumerable<Group> Get()
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] GroupCreatePayload payload)
     {
-        return new List<Group>(){
-            new Group {
-                Id = Guid.NewGuid(),
-                Name = "Test Group",
-                Password = "Test Password",
-                Members = new Guid[] {Guid.NewGuid(), Guid.NewGuid()}
-            }
-        };
+        return new JsonResult(await _services.GiftServices.CreateGroup(payload));
     }
 
-    [HttpPost(Name="CreateGroup")]
-    public Group Create([FromBody] Group group)
+    [HttpGet]
+    public async Task<IActionResult> Get()
     {
-        return group;
+        return new JsonResult(await _services.GiftServices.GetGroups().ToArrayAsync());
     }
 }

@@ -1,4 +1,24 @@
+using Azure.Data.Tables;
+using Azure.Identity;
+using GiftsApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddAzureKeyVault(
+    new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
+    new DefaultAzureCredential()
+);
+
+var config = new AppConfig();
+builder.Configuration.Bind(config);
+builder.Services.AddSingleton<AppConfig>(config);
+builder.Services.AddScoped<TableClient>((services) => {
+    var config = services.GetService<AppConfig>()!;
+    var serviceClient = new TableClient(config.StorageConnectionString, config.StorageTableName);
+    return serviceClient;
+});
+builder.Services.AddScoped(typeof(Services<>));
+builder.Services.AddScoped<GiftServices>();
 
 // Add services to the container.
 
