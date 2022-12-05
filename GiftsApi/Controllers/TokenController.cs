@@ -18,19 +18,19 @@ public class TokenController : ControllerBase
 
     public class Payload
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string UserLoginName { get; set; }
+        public string UserPassword { get; set; }
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Payload request)
     {
-        var user = await _services.TableClient.GetUserByUsernameAsync(request.Username);
+        var user = await _services.TableClient.GetUserByUsernameAsync(request.UserLoginName);
         if (user == null)
         {
             return NotFound();
         }
-        if (!BC.Verify(request.Password, user.Password))
+        if (!BC.Verify(request.UserPassword, user.Password))
         {
             return Unauthorized();
         }
@@ -39,7 +39,7 @@ public class TokenController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Name, user.LoginName),
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_services.Config.JwtKey));
         var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -15,24 +15,24 @@ public class UserController : ControllerBase
 
     public class CreateUserPayload
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string UserLoginName { get; set; }
+        public string UserPassword { get; set; }
     }
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateUserPayload payload)
     {
-        var user = await _services.TableClient.GetUserByUsernameAsync(payload.Username);
+        var user = await _services.TableClient.GetUserByUsernameAsync(payload.UserLoginName);
         if (user != null) {
             return Conflict();
         }
         user = new User
         {
-            Username = payload.Username,
-            Password = BC.HashPassword(payload.Password),
-            DisplayName = payload.Username,
+            LoginName = payload.UserLoginName,
+            Password = BC.HashPassword(payload.UserPassword),
+            DisplayName = payload.UserLoginName,
             Id = Guid.NewGuid(),
         };
-        _services.TableClient.AddEntity(user);
+        _services.TableClient.AddEntity(user.Entity);
         return new JsonResult(user);
     }
 }

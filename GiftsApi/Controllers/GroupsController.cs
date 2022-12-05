@@ -20,8 +20,8 @@ public class GroupsController : ControllerBase
 
     public class GroupCreatePayload
     {
-        public string Name { get; set; }
-        public string Password { get; set; }
+        public string GroupDisplayName { get; set; }
+        public string GroupPassword { get; set; }
     }
     [HttpPost]
     public async Task<IActionResult> CreateGroup([FromBody] GroupCreatePayload payload)
@@ -29,9 +29,10 @@ public class GroupsController : ControllerBase
         var group = new Group
         {
             Id = Guid.NewGuid(),
-            DisplayName = payload.Name,
-            Password = BC.HashPassword(payload.Password),
+            DisplayName = payload.GroupDisplayName,
+            Password = BC.HashPassword(payload.GroupPassword),
             Members = new Guid[] { HttpContext.User.GetUserId()!.Value },
+            Owners = new Guid[] { HttpContext.User.GetUserId()!.Value },
         };
 
         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Create);
@@ -40,15 +41,16 @@ public class GroupsController : ControllerBase
             return new ForbidResult();
         }
 
-        await _services.TableClient.AddEntityAsync(group);
+        await _services.TableClient.AddEntityAsync(group.Entity);
         return new JsonResult(group);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetGroups()
     {
-        var items = _services.TableClient.QueryAsync<Group>(filter: $"PartitionKey eq 'group'").WhereAwait(async group =>
+        var items = _services.TableClient.QueryAsync<GroupEntity>(filter: $"PartitionKey eq 'group'").WhereAwait(async groupEntity =>
         {
+            var group = new Group { Entity = groupEntity };
             var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
             return authResult.Succeeded;
         });
@@ -72,32 +74,39 @@ public class GroupsController : ControllerBase
             return NotFound();
         }
 
-        // validate password
-        var req = new PasswordRequirement
+        // validate join request
+        var auth = await _services.AuthService.AuthorizeAsync(
+            HttpContext.User,
+            group,
+            new JoinGroupAuthorizationRequirement
+            {
+                UserProvidedPassword = payload.GroupPassword
+            }
+        );
+
+        if (!auth.Succeeded)
         {
-            UserProvidedPassword = payload.GroupPassword
-        };
-        if (!(await _services.AuthService.AuthorizeAsync(HttpContext.User, group, req)).Succeeded)
-        {
-            return Forbid();
+            return Problem(
+                detail: string.Join(",", auth.Failure?.FailureReasons.Select(x => x.Message) ?? new string[0]),
+                statusCode: StatusCodes.Status403Forbidden
+            );
         }
 
-        var userId = HttpContext.User.GetUserId();
-        if (userId == null)
-        {
-            return Forbid();
-        }
 
         // add user to group
-        group.Members = group.Members.Append(userId.Value).ToArray();
-        await _services.TableClient.UpdateEntityAsync(group, group.ETag);
+        group.Members = group.Members.Append(HttpContext.User.GetUserId()!.Value).ToArray();
+        await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
         return Ok();
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> DeleteGroup(Guid id)
+    public class DeleteGroupPayload
     {
-        var group = await _services.TableClient.GetGroupByIdAsync(id);
+        public Guid GroupId { get; set; }
+    }
+    [HttpDelete]
+    public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupPayload payload)
+    {
+        var group = await _services.TableClient.GetGroupByIdAsync(payload.GroupId);
         if (group == null)
         {
             return NotFound();
@@ -109,7 +118,7 @@ public class GroupsController : ControllerBase
             return new ForbidResult();
         }
 
-        await _services.TableClient.DeleteEntityAsync(group.PartitionKey, group.RowKey);
+        await _services.TableClient.DeleteEntityAsync(group.Entity.PartitionKey, group.Entity.RowKey);
         return Ok();
     }
 }

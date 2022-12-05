@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace GiftsApi.Auth;
 
-public class PasswordRequirement: IAuthorizationRequirement {
-    public string Name = nameof(PasswordRequirement);
+public class JoinGroupAuthorizationRequirement : IAuthorizationRequirement
+{
+    public string Name = nameof(JoinGroupAuthorizationRequirement);
     public string UserProvidedPassword { get; set; }
 }
 
@@ -20,16 +21,26 @@ public static class CrudRequirements
         new OperationAuthorizationRequirement { Name = nameof(Delete) };
 }
 
-public class GroupAuthorizationPasswordHandler : AuthorizationHandler<PasswordRequirement, Group>
+public class JoinGroupAuthorizationHandler : AuthorizationHandler<JoinGroupAuthorizationRequirement, Group>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        PasswordRequirement requirement,
-        Group resource
-    ) {
+        JoinGroupAuthorizationRequirement requirement,
+        Group group
+    )
+    {
         var userId = context.User.GetUserId();
-        if (userId == null) return Task.CompletedTask;
-        if (BC.Verify(requirement.UserProvidedPassword, resource.Password)) {
+        if (userId == null) 
+        {
+            context.Fail(new AuthorizationFailureReason(this, "User ID not found"));
+            return Task.CompletedTask;
+        }
+        if (group.Members.Contains(userId!.Value)) {
+            context.Fail(new AuthorizationFailureReason(this, "Already a member"));
+            return Task.CompletedTask;
+        }
+        if (BC.Verify(requirement.UserProvidedPassword, group.Password))
+        {
             context.Succeed(requirement);
         }
         return Task.CompletedTask;
@@ -46,18 +57,28 @@ public class GroupAuthorizationCrudHandler :
     {
         var userId = context.User.GetUserId();
         if (userId == null) return Task.CompletedTask;
-        if (requirement == CrudRequirements.Create) {
+        if (requirement == CrudRequirements.Create)
+        {
             context.Succeed(requirement);
-        } else if (requirement == CrudRequirements.Read) {
-            if (resource.Members.Contains(userId.Value)) {
+        }
+        else if (requirement == CrudRequirements.Read)
+        {
+            if (resource.Members.Contains(userId.Value))
+            {
                 context.Succeed(requirement);
             }
-        } else if (requirement == CrudRequirements.Update) {
-            if (resource.Members.Contains(userId.Value)) {
+        }
+        else if (requirement == CrudRequirements.Update)
+        {
+            if (resource.Members.Contains(userId.Value))
+            {
                 context.Succeed(requirement);
             }
-        } else if (requirement == CrudRequirements.Delete) {
-            if (resource.Members.Contains(userId.Value)) {
+        }
+        else if (requirement == CrudRequirements.Delete)
+        {
+            if (resource.Members.Contains(userId.Value))
+            {
                 context.Succeed(requirement);
             }
         }

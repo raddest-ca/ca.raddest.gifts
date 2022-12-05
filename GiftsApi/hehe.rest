@@ -1,12 +1,13 @@
 @baseUrl = http://localhost:5177
+@username = teamy3
 
 ### create user
 POST {{baseUrl}}/api/User
 Content-Type: application/json
 
 {
-    "username": "teamy",
-    "password": "beans"
+    "UserLoginName": "{{username}}",
+    "UserPassword": "beans"
 }
 
 ### login
@@ -16,8 +17,8 @@ POST {{baseUrl}}/api/Token
 Content-Type: application/json
 
 {
-    "username": "teamy",
-    "password": "beans"
+    "UserLoginName": "{{username}}",
+    "UserPassword": "beans"
 }
 
 ### create group
@@ -27,8 +28,8 @@ Authorization: Bearer {{login.response.body.*}}
 Content-Type: application/json
 
 {
-    "name": "myGroup",
-    "password": "hehehehaw"
+    "GroupName": "myGroup",
+    "GroupPassword": "hehehehaw"
 }
 
 
@@ -39,7 +40,7 @@ Authorization: Bearer {{login.response.body.*}}
 Content-Type: application/json
 
 {
-    "GroupId": "f2244fff-6d93-4908-9e5e-6e9b21b60e68",
+    "GroupId": "f0e1fa8f-0e85-4b75-a554-c235a04f5a92",
     "GroupPassword": "hehehehaw"
 }
 
