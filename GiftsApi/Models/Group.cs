@@ -8,7 +8,6 @@ public class Group
 {
 
     public string DisplayName { get; set; }
-    [JsonIgnore]
     public string Password { get; set; }
 
     public Guid[] Members { get; set; }

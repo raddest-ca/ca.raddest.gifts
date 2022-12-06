@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:5177
-@username = teamy3
+@username = teamy
 
 ### create user
 POST {{baseUrl}}/api/User
@@ -24,11 +24,11 @@ Content-Type: application/json
 ### create group
 
 POST {{baseUrl}}/api/Groups
-Authorization: Bearer {{login.response.body.*}}
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
-    "GroupName": "myGroup",
+    "GroupDisplayName": "myGroup",
     "GroupPassword": "hehehehaw"
 }
 
@@ -36,7 +36,7 @@ Content-Type: application/json
 ### join group
 
 POST {{baseUrl}}/api/Groups/join
-Authorization: Bearer {{login.response.body.*}}
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
@@ -47,4 +47,4 @@ Content-Type: application/json
 ### get groups
 
 GET {{baseUrl}}/api/Groups
-Authorization: Bearer {{login.response.body.*}}
+Authorization: Bearer {{login.response.body.token}}

@@ -30,7 +30,7 @@ public class GroupsController : ControllerBase
         {
             Id = Guid.NewGuid(),
             DisplayName = payload.GroupDisplayName,
-            Password = BC.HashPassword(payload.GroupPassword),
+            Password = payload.GroupPassword, // store password in plaintext for groups
             Members = new Guid[] { HttpContext.User.GetUserId()!.Value },
             Owners = new Guid[] { HttpContext.User.GetUserId()!.Value },
         };
@@ -54,7 +54,7 @@ public class GroupsController : ControllerBase
             var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
             return authResult.Succeeded;
         });
-        return new JsonResult(await items.ToArrayAsync());
+        return new JsonResult(await items.Select(x => new Group{Entity=x}).ToArrayAsync());
     }
 
 
