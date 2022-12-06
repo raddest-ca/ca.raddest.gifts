@@ -50,6 +50,6 @@ public class TokenController : ControllerBase
             expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: signIn
         );
-        return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+        return new JsonResult(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
     }
 }
