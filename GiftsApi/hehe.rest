@@ -44,6 +44,13 @@ Content-Type: application/json
     "GroupPassword": "hehehehaw"
 }
 
+### get group
+
+GET {{baseUrl}}/api/Groups/25dbf2b9-c772-4254-a73d-ad862ab9c535
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+
 ### get groups
 
 GET {{baseUrl}}/api/Groups

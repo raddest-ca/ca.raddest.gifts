@@ -58,6 +58,27 @@ public class GroupsController : ControllerBase
     }
 
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetGroup(Guid id)
+    {
+        var group = await _services.TableClient.GetGroupByIdAsync(id);
+        if (group == null)
+        {
+            return NotFound();
+        }
+
+        var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
+        if (!authResult.Succeeded)
+        {
+            return new ForbidResult();
+        }
+
+        return new JsonResult(new {
+            group,
+            cards = new List<string>{ "card1", "card2"},
+        });
+    }
+
     public class JoinGroupPayload
     {
         public Guid GroupId { get; set; }
