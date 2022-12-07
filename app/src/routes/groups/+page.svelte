@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-	import AuthRequired from "../../components/AuthRequired.svelte";
     import { apiFetch } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
-	import type { Group } from "../../api/types";
 	import { goto } from "$app/navigation";
 
     export let data: PageData;
