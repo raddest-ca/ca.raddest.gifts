@@ -23,7 +23,7 @@ public class User
     {
         get => new UserEntity
         {
-            PartitionKey = "user",
+            PartitionKey = "User",
             RowKey = Id.ToString(),
             Username = LoginName,
             DisplayName = DisplayName,

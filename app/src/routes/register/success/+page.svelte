@@ -1,0 +1,1 @@
+Successfully registered. You probably want to <a class="underline" href="/login">log in</a> now.

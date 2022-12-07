@@ -19,8 +19,13 @@ interface Group {
 }
 ```
 
+
+
 Example use case:
 
 - Family group
 - Lists within group: Mom Wishlist, Dad, MomDad, Kid1, Kid2
 - Example cards: "Mom Wishlist"."bike", claimed by {Dad, Kid1}
+
+
+# card hashtags

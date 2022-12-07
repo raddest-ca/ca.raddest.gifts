@@ -1,34 +1,14 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-    import { headers, loggedIn } from "../../stores/auth";
 	import AuthRequired from "../../components/AuthRequired.svelte";
+    import { apiFetch } from "../../api/client";
+	import ErrorMessage from "../../components/ErrorMessage.svelte";
+	import type { Group } from "../../api/types";
+	import { goto } from "$app/navigation";
 
-    interface Group {
-        displayName: string;
-        password: string;
-        members: string[];
-        owners: string[];
-        id: string;
-    }
-
-    let groups: Group[] = [];
-    let error = "";
-    async function load() {
-        const resp = await fetch(`${import.meta.env.VITE_API_URL}/groups`, {
-            headers: {
-                "Content-Type": "application/json",
-                ...$headers,
-            },
-        });
-        if (resp.ok) {
-            groups = await resp.json();
-            console.dir(groups);
-        } else {
-            error = resp.statusText;
-        }
-    }
-    load();
-    
+    export let data: PageData;
+    $: error = data?.errorMessage;
+    $: groups = data?.data ?? [];
     let groupInviteCode = "";
     let groupCreationDisplayName = "";
     let groupCreationPassword = "";
@@ -38,30 +18,22 @@
     }
 
     async function createGroup(displayName: string, password: string) {
-        const resp = await fetch(`${import.meta.env.VITE_API_URL}/groups`, {
+        const resp = await apiFetch("/group", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...$headers,
-            },
             body: JSON.stringify({
                 GroupDisplayName: displayName,
                 GroupPassword: password,
             }),
         });
         if (resp.ok) {
-            await load();
+            await goto("./");
         } else {
-            error = resp.statusText;
+            error = resp.errorMessage;
         }
     }
 </script>
 
-<AuthRequired>
-
-{#if error}
-    <span class="text-xl">{error}</span>
-{/if}
+<ErrorMessage {error}/>
 
 <section>
     <h1 class="text-xl font-bold">Join a group</h1>
@@ -95,4 +67,3 @@
         </ul>
     {/if}
 </section>
-</AuthRequired>

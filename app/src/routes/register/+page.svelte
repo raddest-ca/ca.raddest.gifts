@@ -1,35 +1,43 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { apiFetch } from "../../api/client";
-	import ErrorMessage from "../../components/ErrorMessage.svelte";
     import { jwt } from "../../stores/auth"
 
     let username = "";
     let password = "";
-    let error:string|null=null;
+    let password2 = "";
+    let error = "";
 
-    async function login() {
-        error = "";
-        const resp = await apiFetch<{token:string}>("/Token", {
+    async function register() {
+        if (error !== "") return;
+        const resp = await fetch(`${import.meta.env.VITE_API_URL}/User`, {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 UserLoginName: username,
                 UserPassword: password,
             }),
         });
         if (resp.ok) {
-            jwt.set(resp.data.token);
-            await goto("/");
+            await goto("/register/success");
         } else {
-            error=resp.errorMessage;
+            console.log("register failed")
         }
+    }
+    
+
+    $: if (password !== password2) {
+        error = "Passwords do not match";
+    } else {
+        error = "";
     }
 </script>
 
 <main>
-    <h1 class="text-xl font-bold">Login</h1>
+    <h1 class="text-xl font-bold">Register</h1>
     <hr class="my-2">
-    <form on:submit|preventDefault={login}>
+    <form on:submit|preventDefault={register}>
         <div>
             <div class="mb-2">
                 <label class="w-32 inline-block" for="username">Username</label>
@@ -39,8 +47,16 @@
                 <label class="w-32 inline-block" for="password">Password</label>
                 <input type="password" name="password" id="password" bind:value={password} />
             </div>
+            <div class="mb-2">
+                <label class="w-32 inline-block" for="password">Password confirm</label>
+                <input type="password" name="password" id="password" bind:value={password2} />
+            </div>
         </div>
-        <ErrorMessage {error} />
+        {#if error !== ""}
+            <div class="text-red-600 drop-shadow-md">
+                {error}
+            </div>
+        {/if}
         <button class="rounded-xl bg-slate-200 p-2 drop-shadow-lg m-2" type="submit">Login</button>
     </form>
 </main>

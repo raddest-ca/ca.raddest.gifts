@@ -8,11 +8,11 @@ namespace GiftsApi.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class GroupsController : ControllerBase
+public class GroupController : ControllerBase
 {
-    private readonly Services<GroupsController> _services;
+    private readonly Services<GroupController> _services;
 
-    public GroupsController(Services<GroupsController> services)
+    public GroupController(Services<GroupController> services)
     {
         _services = services;
     }
@@ -48,7 +48,7 @@ public class GroupsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetGroups()
     {
-        var items = _services.TableClient.QueryAsync<GroupEntity>(filter: $"PartitionKey eq 'group'").WhereAwait(async groupEntity =>
+        var items = _services.TableClient.QueryAsync<GroupEntity>(filter: $"PartitionKey eq 'Group'").WhereAwait(async groupEntity =>
         {
             var group = new Group { Entity = groupEntity };
             var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);

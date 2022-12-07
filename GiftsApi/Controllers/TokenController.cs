@@ -28,7 +28,7 @@ public class TokenController : ControllerBase
         var user = await _services.TableClient.GetUserByUsernameAsync(request.UserLoginName);
         if (user == null)
         {
-            return NotFound();
+            return ValidationProblem("Couldn't find user");
         }
         if (!BC.Verify(request.UserPassword, user.Password))
         {

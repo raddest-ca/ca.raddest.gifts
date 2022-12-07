@@ -23,7 +23,7 @@ public class Group
     {
         get => new GroupEntity
         {
-            PartitionKey = "group",
+            PartitionKey = "Group",
             RowKey = Id.ToString(),
             DisplayName = DisplayName,
             Password = Password,
