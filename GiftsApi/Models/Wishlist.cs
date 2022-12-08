@@ -20,13 +20,13 @@ public class Wishlist
     {
         get => new WishlistEntity
         {
-            PartitionKey = $"Wishlist:{GroupId}",
+            PartitionKey = $"Group:{GroupId}:Wishlist",
             RowKey = Id.ToString(),
             DisplayName = DisplayName,
             Owners = string.Join(",", Owners),
             ETag = _eTag,
         };
-        set => (Id, GroupId, DisplayName, Owners, _eTag) = (Guid.Parse(value.RowKey), Guid.Parse(value.PartitionKey.Split("Wishlist:")[1]), value.DisplayName, value.Owners.Split(',').Select(Guid.Parse).ToArray(), value.ETag);
+        set => (Id, GroupId, DisplayName, Owners, _eTag) = (Guid.Parse(value.RowKey), Guid.Parse(value.PartitionKey.Split(":")[1]), value.DisplayName, value.Owners.Split(',').Select(Guid.Parse).ToArray(), value.ETag);
     }
 }
 

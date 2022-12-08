@@ -73,10 +73,7 @@ public class GroupController : ControllerBase
             return new ForbidResult();
         }
 
-        return new JsonResult(new {
-            group,
-            cards = new List<string>{ "card1", "card2"},
-        });
+        return new JsonResult(group);
     }
 
     public class JoinGroupPayload

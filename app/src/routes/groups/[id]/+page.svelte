@@ -1,49 +1,69 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
 	import ErrorMessage from "../../../components/ErrorMessage.svelte";
-	import { apiFetch } from "../../../api/client";
-	import { goto, invalidate } from "$app/navigation";
+	import { apiFetch, apiInvalidate } from "../../../api/client";
+	import { goto, invalidate, invalidateAll } from "$app/navigation";
 	import { page } from "$app/stores";
 
     export let data: PageData;
-    $: error = !data.ok ? data.errorMessage : null;
     $: console.log(data);
+    $: groupId = $page.params.id;
+    $: inviteCode = data.ok ? `${groupId}:${data.data.group.password}` : "failed to load code";
 
+    let postError = "";
     let newWishlistName = "";
 
     async function createWishlist(displayName: string) {
-        const resp = await apiFetch(fetch, `/group/${data.data!.group.id}/wishlist`, {
+        const resp = await apiFetch(fetch, `/group/${groupId}/wishlist`, {
             method: "POST",
             body: JSON.stringify({
                 DisplayName: displayName,
             }),
         });
         if (resp.ok) {
-            await invalidate($page.url);
+            await apiInvalidate(`/group/${groupId}/wishlist`);
+            // await invalidate(`/api/group/${groupId}/wishlist`);
         } else {
-            error = resp.errorMessage;
+            postError = resp.errorMessage;
         }
     }
 </script>
 
-<ErrorMessage {error}/>
+<ErrorMessage error={!data.ok ? data.errorMessage : null}/>
+<ErrorMessage error={postError}/>
 
 {#if data.ok}
 <h1 class="text-2xl font-bold">Group - {data.data.group.displayName}</h1>
 <hr class="my-1">
 <section>
-    <h1 class="text-xl font-bold">Wishlists</h1>
+    <h1 class="text-xl font-bold mt-4">Wishlists</h1>
     <hr class="my-1">
-
+    <div class="flex flex-wrap">
+        {#each data.data.wishlists as wishlist}
+        <div class="bg-slate-300 m-4 p-4 w-64">
+            <h2>{wishlist.displayName}</h2>
+            <hr>
+            <div>
+                
+            </div>
+            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm">Add a card</button>
+        </div>
+        {/each}
+    </div>
 </section>
 <section>
-    <h1 class="text-xl font-bold">Add new list</h1>
+    <h1 class="text-xl font-bold mt-4">Add new list</h1>
     <hr class="my-1">
     <form>
         <label for="newWishlistName">Display name: </label>
         <input type="text" name="newWishlistName" id="newWishlistName" placeholder="love da mets" bind:value={newWishlistName}>
         <button type="submit" class="rounded-xl bg-slate-200 p-2 drop-shadow-lg" on:click|preventDefault={()=>createWishlist(newWishlistName)}>Create</button>
     </form>
+</section>
+<section>
+    <h1 class="text-xl font-bold mt-4">Invite someone</h1>
+    <hr class="my-2">
+    <span>Invite code: <input class="bg-gray-800 text-white p-2 rounded-md text-ellipsis" bind:value={inviteCode}/> <button class="underline text-blue-500" type="button" on:click={()=>navigator.clipboard.writeText(inviteCode)}>(copy)</button></span>
 </section>
 {/if}
 

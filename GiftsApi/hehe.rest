@@ -56,3 +56,8 @@ Content-Type: application/json
 
 GET {{baseUrl}}/api/group
 Authorization: Bearer {{login.response.body.token}}
+
+### get wishlits
+
+GET {{baseUrl}}/api/group/48e75e47-ca84-4751-8f77-e79126d36d57/wishlist
+Authorization: Bearer {{login.response.body.token}}

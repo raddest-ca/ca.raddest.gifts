@@ -30,6 +30,7 @@ public class WishlistController : ControllerBase
         var list = new Wishlist
         {
             Id = Guid.NewGuid(),
+            GroupId = groupId,
             DisplayName = payload.DisplayName,
             Owners = new Guid[] { HttpContext.User.GetUserId()!.Value },
         };
@@ -39,7 +40,8 @@ public class WishlistController : ControllerBase
             return ValidationProblem("couldn't find group");
         }
 
-        var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, list, new GroupScopedOperationAuthorizationRequirement{
+        var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, list, new GroupScopedOperationAuthorizationRequirement
+        {
             Group = group,
             Requirement = CrudRequirements.Create,
         });
@@ -55,17 +57,27 @@ public class WishlistController : ControllerBase
         return new JsonResult(list);
     }
 
-    // [HttpGet]
-    // public async Task<IActionResult> List()
-    // {
-    //     var items = _services.TableClient.QueryAsync<GroupEntity>(filter: $"PartitionKey eq 'group'").WhereAwait(async groupEntity =>
-    //     {
-    //         var group = new Group { Entity = groupEntity };
-    //         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
-    //         return authResult.Succeeded;
-    //     });
-    //     return new JsonResult(await items.Select(x => new Group{Entity=x}).ToArrayAsync());
-    // }
+    [HttpGet]
+    public async Task<IActionResult> List(Guid groupId)
+    {
+        var group = await _services.TableClient.GetGroupByIdAsync(groupId);
+        if (group == null) {
+            return NotFound("Group not found");
+        }
+        var requirement = new GroupScopedOperationAuthorizationRequirement{
+            Group = group,
+            Requirement = CrudRequirements.Read,
+        };
+        var items = _services.TableClient
+            .QueryAsync<WishlistEntity>(filter: $"PartitionKey eq 'Group:{groupId}:Wishlist'")
+            .Select(entity => new Wishlist { Entity = entity })
+            .WhereAwait(async resource =>
+            {
+                var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, resource, requirement);
+                return authResult.Succeeded;
+            });
+        return new JsonResult(await items.ToArrayAsync());
+    }
 
 
     // [HttpGet("{id}")]
