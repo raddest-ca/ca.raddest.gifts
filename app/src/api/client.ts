@@ -22,9 +22,12 @@ loggedInStore.subscribe((value) => {
     loggedIn = value;
 });
 
-export async function assertAuth() {
+export async function assertAuth(returnUrl: string | URL) {
     if (!loggedIn) {
-        throw error(401);
+        throw error(401, {
+            message:"Not authenticated",
+            returnUrl: returnUrl.toString()
+        });
     }
 }
 

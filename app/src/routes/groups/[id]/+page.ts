@@ -1,11 +1,11 @@
-import { apiFetch } from "../../../api/client";
+import { apiFetch, assertAuth } from "../../../api/client";
 import type { Group } from "../../../api/types";
 import type { PageLoad } from "./$types";
 
-export const load: PageLoad = async ({ params }) => {
-	const group = await apiFetch<{
+export const load: PageLoad = async ({ params, url }) => {
+    await assertAuth(url);
+	return await apiFetch<{
         group: Group,
         cards: any,
-    }>(`/group/${params.id}`)
-	return group;
+    }>(`/group/${params.id}`);
 };

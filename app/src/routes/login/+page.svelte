@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import { page } from "$app/stores";
 	import { apiFetch } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
     import { jwt } from "../../stores/auth"
@@ -19,11 +20,13 @@
         });
         if (resp.ok) {
             jwt.set(resp.data.token);
-            await goto("/");
+            let returnUrl = $page.url.searchParams.get("returnUrl") ?? "/";
+            await goto(returnUrl);
         } else {
             error=resp.errorMessage;
         }
     }
+
 </script>
 
 <main>
