@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from "$app/stores";
 	import { onDestroy } from "svelte";
     import "../app.css";
     import { name, loggedIn, jwtData, jwt } from "../stores/auth";
@@ -25,7 +26,7 @@
             <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block" href="/groups/">My groups</a>
             <span class="p-4 inline-block float-right">Logged in as <a href="/account" class="underline">{$name}</a> ({remaining.toFixed(0)} remaining)</span>
         {:else}
-            <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block float-right" href="/login">Login</a>
+            <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block float-right" href="/login?returnUrl={$page.url.pathname}">Login</a>
             <span class="float-right inline-block p-4">or</span>
             <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block float-right" href="/register">Register</a>
         {/if}
