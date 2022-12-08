@@ -49,6 +49,7 @@ builder.Services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandl
 builder.Services.AddSingleton<IAuthorizationHandler, JoinGroupAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, WishlistAuthorizationCrudHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, CardAuthorizationCrudHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserAuthorizationCrudHandler>();
 
 
 // cors

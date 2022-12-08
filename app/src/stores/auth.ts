@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import { browser } from "$app/environment";
 import jwt_decode from "jwt-decode";
+import { apiFetch } from "../api/client";
 
 export interface JWT {
     sub: string;
@@ -15,6 +16,7 @@ export interface JWT {
 
 const existingJwt = browser ? localStorage.getItem("auth") : null;
 const existingJwtRefresh = browser ? localStorage.getItem("auth-refresh") : null;
+let latestRefreshToken = existingJwtRefresh;
 export const jwt = writable<string | null>(existingJwt ?? null);
 export const refreshToken = writable<string | null>(existingJwtRefresh ?? null);
 export const jwtData = writable<JWT | null>(null);
@@ -43,10 +45,27 @@ if (browser) {
         }
     });
     refreshToken.subscribe((value) => {
+        latestRefreshToken = value;
         if (value === null) {
             localStorage.removeItem("auth-refresh");
         } else {
             localStorage.setItem("auth-refresh", value);
         }
     });
+}
+
+export async function refreshJwt() {
+    console.log("Refreshing JWT with refresh token");
+    const resp = await apiFetch<{token:string}>(fetch, "/Token/Refresh", {
+        method: "POST",
+        body: JSON.stringify({
+            refreshToken: latestRefreshToken,
+        }),
+    });
+    if (resp.ok) {
+        jwt.set(resp.data.token);
+        return true;
+    } else {
+        return false;
+    }
 }

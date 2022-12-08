@@ -26,7 +26,7 @@ public class TokenController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.LoginName),
+            new Claim(ClaimTypes.Name, user.DisplayName),
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_services.Config.JwtKey));
         var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -1,4 +1,6 @@
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Azure.Data.Tables;
 using GiftsApi.Models;
 
@@ -32,5 +34,13 @@ public static class TableServiceExtensions
         var entity = await table.QueryAsync<UserEntity>(filter: $"PartitionKey eq 'User' and Username eq '{username}'").FirstOrDefaultAsync();
         if (entity == null) return null;
         return new User { Entity = entity };   
+    }
+
+    public static async Task<User?> GetUserIfExistsAsync(this TableClient table, ClaimsPrincipal user)
+    {
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return null;
+        if (Guid.TryParse(userId, out var guid)) return await table.GetUserIfExistsAsync(guid);
+        return null;
     }
 }

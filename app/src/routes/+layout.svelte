@@ -4,38 +4,18 @@
 	import { onDestroy } from "svelte";
 	import { apiFetch, assertAuth } from "../api/client";
     import "../app.css";
-    import { name, loggedIn, jwtData, jwt, refreshToken } from "../stores/auth";
+    import { name, loggedIn, jwtData, jwt, refreshToken, refreshJwt } from "../stores/auth";
 	import type { LayoutData } from "./$types";
 
     let remaining = 0;
 
-    async function refreshJwt() {
-        console.log("Refreshing JWT with refresh token");
-        const resp = await apiFetch<{token:string}>(fetch, "/Token/Refresh", {
-            method: "POST",
-            body: JSON.stringify({
-                refreshToken: $refreshToken,
-            }),
-        });
-        if (resp.ok) {
-            jwt.set(resp.data.token);
-            return true;
-        } else {
-            jwt.set(null);
-            return false;
-        }
-    }
     let debounce = false; // idk if this is necessary
     const interval = setInterval(async ()=>{
         if ($jwtData === null) return;
         remaining = $jwtData.exp - (Date.now()/1000);
         if (remaining <= 30 && !debounce) {
             debounce = true;
-            if (!await refreshJwt()) {
-                // refresh failed, direct to login page
-                await goto(`/login?returnUrl=${$page.url.pathname}`);
-                debounce = false;
-            }
+            await refreshJwt();
         }
     }, 1000);
 
