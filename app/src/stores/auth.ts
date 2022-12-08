@@ -13,9 +13,10 @@ export interface JWT {
     aud: string;
 }
 
-const existing = browser ? localStorage.getItem("auth") : null;
-export const jwt = writable<string | null>(existing ?? null);
-export const refreshToken = writable<string | null>(existing ?? null);
+const existingJwt = browser ? localStorage.getItem("auth") : null;
+const existingJwtRefresh = browser ? localStorage.getItem("auth-refresh") : null;
+export const jwt = writable<string | null>(existingJwt ?? null);
+export const refreshToken = writable<string | null>(existingJwtRefresh ?? null);
 export const jwtData = writable<JWT | null>(null);
 export const loggedIn = writable<boolean>(false);
 export const name = writable<string | null>(null);
@@ -39,6 +40,13 @@ if (browser) {
                 "Authorization": `Bearer ${value}`,
             });
             localStorage.setItem("auth", value);
+        }
+    });
+    refreshToken.subscribe((value) => {
+        if (value === null) {
+            localStorage.removeItem("auth-refresh");
+        } else {
+            localStorage.setItem("auth-refresh", value);
         }
     });
 }
