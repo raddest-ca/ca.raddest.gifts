@@ -10,6 +10,7 @@
     let remaining = 0;
 
     async function refreshJwt() {
+        console.log("Refreshing JWT with refresh token");
         const resp = await apiFetch<{token:string}>(fetch, "/Token/Refresh", {
             method: "POST",
             body: JSON.stringify({
@@ -24,14 +25,16 @@
             return false;
         }
     }
-
+    let debounce = false; // idk if this is necessary
     const interval = setInterval(async ()=>{
         if ($jwtData === null) return;
         remaining = $jwtData.exp - (Date.now()/1000);
-        if (remaining <= 0) {
+        if (remaining <= 0 && !debounce) {
+            debounce = true;
             if (!await refreshJwt()) {
                 // refresh failed, direct to login page
                 await goto(`/login?returnUrl=${$page.url.pathname}`);
+                debounce = false;
             }
         }
     }, 1000);
