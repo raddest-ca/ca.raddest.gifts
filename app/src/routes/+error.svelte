@@ -1,7 +1,14 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
     import { page } from "$app/stores";
+	import { loggedIn } from "../stores/auth";
 
-    $: params = $page?.error?.returnUrl ? "returnUrl=" + new URL($page?.error?.returnUrl).pathname : "";
+    $: returnUrl = $page?.error?.returnUrl ? new URL($page?.error?.returnUrl).pathname : "/";
+    $: params = "returnUrl=" + returnUrl;
+
+    $: if ($page.status === 401 && $loggedIn) {
+        goto(returnUrl);
+    }
 </script>
 
 {#if $page.status === 401}
