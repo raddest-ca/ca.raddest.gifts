@@ -3,15 +3,17 @@
 	import { page } from "$app/stores";
 	import { apiFetch } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
-    import { jwt } from "../../stores/auth"
+    import { jwt, loggedIn } from "../../stores/auth"
 
     let username = "";
     let password = "";
     let error:string|null=null;
 
+    const returnUrl = $page.url.searchParams.get("returnUrl") ?? "/";
+
     async function login() {
         error = "";
-        const resp = await apiFetch<{token:string}>("/Token", {
+        const resp = await apiFetch<{token:string}>(fetch, "/Token", {
             method: "POST",
             body: JSON.stringify({
                 UserLoginName: username,
@@ -20,13 +22,16 @@
         });
         if (resp.ok) {
             jwt.set(resp.data.token);
-            let returnUrl = $page.url.searchParams.get("returnUrl") ?? "/";
             await goto(returnUrl);
         } else {
             error=resp.errorMessage;
         }
     }
 
+    // If we're already logged in, redirect to the return URL
+    if ($loggedIn) {
+        goto(returnUrl);
+    }
 </script>
 
 <main>

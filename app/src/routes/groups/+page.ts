@@ -4,5 +4,5 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({url}) => {
     await assertAuth(url);
-    return await apiFetch<Group[]>("/group");
+    return await apiFetch<Group[]>(fetch, "/group");
 };

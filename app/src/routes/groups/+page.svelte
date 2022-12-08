@@ -2,7 +2,8 @@
 	import type { PageData } from "./$types";
     import { apiFetch } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
-	import { goto } from "$app/navigation";
+	import { goto, invalidate } from "$app/navigation";
+	import { page } from "$app/stores";
 
     export let data: PageData;
     $: error = data?.errorMessage;
@@ -16,7 +17,7 @@
     }
 
     async function createGroup(displayName: string, password: string) {
-        const resp = await apiFetch("/group", {
+        const resp = await apiFetch(fetch, "/group", {
             method: "POST",
             body: JSON.stringify({
                 GroupDisplayName: displayName,
@@ -24,7 +25,7 @@
             }),
         });
         if (resp.ok) {
-            await goto("./");
+            await invalidate($page.url);
         } else {
             error = resp.errorMessage;
         }
@@ -41,7 +42,8 @@
         <input type="text" name="groupCode" id="groupCode" placeholder="code" bind:value={groupInviteCode}>
         <button type="submit" class="rounded-xl bg-slate-200 p-2 drop-shadow-lg" on:click={()=>joinGroup(groupInviteCode)}>Join</button>
     </form>
-</section><section>
+</section>
+<section>
     <h1 class="text-xl font-bold">Create a group</h1>
     <hr class="my-1">
     <form>
