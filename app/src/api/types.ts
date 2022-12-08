@@ -11,6 +11,14 @@ export interface Wishlist {
 	displayName: string;
 }
 
+export interface Card {
+	id: string;
+	wishlistId: string;
+	groupId: string;
+	content: string;
+	visibleToListOwners: boolean
+}
+
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace App {

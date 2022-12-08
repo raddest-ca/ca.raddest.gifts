@@ -21,7 +21,7 @@ public class CardController : ControllerBase
     public class CreateCardPayload
     {
         public string Content { get; set; }
-        public bool VisibleToListOwner {get; set;}
+        public bool VisibleToListOwners {get; set;}
     }
 
     [HttpGet]
@@ -64,7 +64,7 @@ public class CardController : ControllerBase
             GroupId = groupId,
             WishlistId = wishlistId,
             Content = payload.Content,
-            VisibleToListOwner = payload.VisibleToListOwner,
+            VisibleToListOwners = payload.VisibleToListOwners,
         };
         var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
         if (group == null)

@@ -10,7 +10,7 @@ public class Card
     public Guid GroupId { get; set; }
     public Guid WishlistId { get; set; }
     public string Content {get; set;}
-    public bool VisibleToListOwner {get; set;}
+    public bool VisibleToListOwners {get; set;}
 
     [JsonIgnore]
     private ETag _eTag { get; set; }
@@ -23,10 +23,10 @@ public class Card
             PartitionKey = $"Group:{GroupId}:Wishlist:{WishlistId}:Card",
             RowKey = Id.ToString(),
             Content = Content,
-            VisibleToListOwner = VisibleToListOwner,
+            VisibleToListOwners = VisibleToListOwners,
             ETag = _eTag,
         };
-        set => (Id, GroupId, WishlistId, Content, VisibleToListOwner, _eTag) = (Guid.Parse(value.RowKey), Guid.Parse(value.PartitionKey.Split(":")[1]), Guid.Parse(value.PartitionKey.Split(":")[3]), value.Content, value.VisibleToListOwner, value.ETag);
+        set => (Id, GroupId, WishlistId, Content, VisibleToListOwners, _eTag) = (Guid.Parse(value.RowKey), Guid.Parse(value.PartitionKey.Split(":")[1]), Guid.Parse(value.PartitionKey.Split(":")[3]), value.Content, value.VisibleToListOwners, value.ETag);
     }
 }
 
@@ -36,7 +36,7 @@ public class CardEntity : ITableEntity
     public string RowKey { get; set; }
     
     public string Content {get; set;}
-    public bool VisibleToListOwner {get; set;}
+    public bool VisibleToListOwners {get; set;}
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }

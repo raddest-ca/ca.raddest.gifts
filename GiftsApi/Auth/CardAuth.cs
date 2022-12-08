@@ -30,7 +30,7 @@ public class CardAuthorizationCrudHandler :
         }
 
         var isWishlistOwner = requirement.Wishlist.Owners.Contains(userId.Value);
-        if (!resource.VisibleToListOwner && isWishlistOwner)
+        if (!resource.VisibleToListOwners && isWishlistOwner)
         {
             context.Fail(new AuthorizationFailureReason(this, "user is not allowed to view this card"));
             return Task.CompletedTask;

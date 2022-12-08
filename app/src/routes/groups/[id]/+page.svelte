@@ -43,10 +43,12 @@
             method: "POST",
             body: JSON.stringify({
                 Content: content,
-                VisibleToListOwner: true,
+                VisibleToListOwners: true,
             }),
         });
         if (resp.ok) {
+            addCardActive[wishlistId] = false;
+            addCardContent[wishlistId] = "";
             await apiInvalidate(`/group/${groupId}/wishlist/${wishlistId}/card`);
         } else {
             postError = resp.errorMessage;
@@ -68,9 +70,11 @@
         <div class="bg-slate-300 m-4 p-4 w-64">
             <h2>{wishlist.displayName}</h2>
             <hr>
-            <div>
-                
-            </div>
+            <ul>
+                {#each data.data.cards[wishlist.id] as card}
+                    <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">{card.content}</li>
+                {/each}
+            </ul>
             {#if addCardActive[wishlist.id]}
                 <div>
                     <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContent[wishlist.id])}>
