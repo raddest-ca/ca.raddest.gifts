@@ -13,41 +13,29 @@ public class WishlistAuthorizationCrudHandler :
                                                    Wishlist resource)
     {
         var userId = context.User.GetUserId();
-        if (userId == null) 
+        if (userId == null)
         {
-            context.Fail(new AuthorizationFailureReason(this, "User not found"));
+            context.Fail(new AuthorizationFailureReason(this, "user not found"));
             return Task.CompletedTask;
         }
+
         var isInGroup = requirement.Group.Members.Contains(userId.Value);
         if (!isInGroup)
         {
-            context.Fail(new AuthorizationFailureReason(this, "User is not a member of the group"));
+            context.Fail(new AuthorizationFailureReason(this, "user is not a member of the group"));
             return Task.CompletedTask;
         }
 
-        if (requirement.Requirement == CrudRequirements.Create)
+        if (requirement.Requirement == CrudRequirements.Update || requirement.Requirement == CrudRequirements.Delete)
         {
-            context.Succeed(requirement);
-        }
-        else if (requirement.Requirement == CrudRequirements.Read)
-        {
-            context.Succeed(requirement);
-        }
-        else if (requirement.Requirement == CrudRequirements.Update)
-        {
-            if (resource.Owners.Contains(userId.Value))
+            if (!resource.Owners.Contains(userId.Value))
             {
-                context.Succeed(requirement);
-            }
-        }
-        else if (requirement.Requirement == CrudRequirements.Delete)
-        {
-            if (resource.Owners.Contains(userId.Value))
-            {
-                context.Succeed(requirement);
+                context.Fail(new AuthorizationFailureReason(this, "user is not an owner of the wishlist"));
+                return Task.CompletedTask;
             }
         }
 
+        context.Succeed(requirement);
         return Task.CompletedTask;
     }
 }

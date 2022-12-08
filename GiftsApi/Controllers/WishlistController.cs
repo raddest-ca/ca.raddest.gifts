@@ -7,12 +7,12 @@ namespace GiftsApi.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/groups/{groupId:guid}/[controller]")]
-public class GroupListController : ControllerBase
+[Route("api/group/{groupId:guid}/[controller]")]
+public class WishlistController : ControllerBase
 {
-    private readonly Services<GroupListController> _services;
+    private readonly Services<WishlistController> _services;
 
-    public GroupListController(Services<GroupListController> services)
+    public WishlistController(Services<WishlistController> services)
     {
         _services = services;
     }
@@ -22,9 +22,11 @@ public class GroupListController : ControllerBase
     {
         public string DisplayName { get; set; }
     }
+
     [HttpPost]
     public async Task<IActionResult> Create(Guid groupId, [FromBody] CreateWishlistPayload payload)
     {
+
         var list = new Wishlist
         {
             Id = Guid.NewGuid(),
@@ -43,11 +45,14 @@ public class GroupListController : ControllerBase
         });
         if (!authResult.Succeeded)
         {
-            return new ForbidResult();
+            return ValidationProblem(
+                statusCode: StatusCodes.Status403Forbidden,
+                detail: string.Join(", ", authResult.Failure?.FailureReasons.Select(x => x.Message) ?? new string[0])
+            );
         }
 
-        await _services.TableClient.AddEntityAsync(group.Entity);
-        return new JsonResult(group);
+        await _services.TableClient.AddEntityAsync(list.Entity);
+        return new JsonResult(list);
     }
 
     // [HttpGet]
