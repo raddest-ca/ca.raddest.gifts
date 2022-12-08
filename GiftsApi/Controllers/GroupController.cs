@@ -64,7 +64,7 @@ public class GroupController : ControllerBase
         var group = await _services.TableClient.GetGroupIfExistsAsync(id);
         if (group == null)
         {
-            return NotFound();
+            return BadRequest("group not found");
         }
 
         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Read);
@@ -89,7 +89,7 @@ public class GroupController : ControllerBase
         var group = await _services.TableClient.GetGroupIfExistsAsync(payload.GroupId);
         if (group == null)
         {
-            return NotFound();
+            return BadRequest("group not found");
         }
 
         // validate join request

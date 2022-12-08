@@ -51,6 +51,7 @@ public class TokenController : ControllerBase
             UserId = user.Id,
             // sanitize characters for table storage row key
             // https://stackoverflow.com/a/47049320/11141271
+            // https://learn.microsoft.com/en-us/rest/api/storageservices/Understanding-the-Table-Service-Data-Model?redirectedfrom=MSDN#partitionkey-property
             Token = Convert.ToBase64String(randomNumber).Replace("/","_").Replace("+","-"),
         };
     }
@@ -94,7 +95,6 @@ public class TokenController : ControllerBase
     [Route("refresh")]
     public async Task<IActionResult> Refresh([FromBody] LoginRefreshPayload request)
     {
-        Console.WriteLine("got " + request.RefreshToken);
         if (!request.RefreshToken.Contains(":"))
         {
             return BadRequest("bad refresh token");

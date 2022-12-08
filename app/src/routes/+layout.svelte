@@ -29,7 +29,7 @@
     const interval = setInterval(async ()=>{
         if ($jwtData === null) return;
         remaining = $jwtData.exp - (Date.now()/1000);
-        if (remaining <= 0 && !debounce) {
+        if (remaining <= 30 && !debounce) {
             debounce = true;
             if (!await refreshJwt()) {
                 // refresh failed, direct to login page
@@ -48,7 +48,7 @@
         <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block" href="/">Home</a>
         {#if $loggedIn}
             <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block" href="/groups/">My groups</a>
-            <span class="p-4 inline-block float-right">Logged in as <a href="/account" class="underline">{$name}</a></span>
+            <span class="p-4 inline-block float-right">Logged in as <a href="/account" class="underline">{$name}</a> ({remaining.toFixed(0)} remaining)</span>
         {:else}
             <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block float-right" href="/login?returnUrl={$page.url.pathname}">Login</a>
             <span class="float-right inline-block p-4">or</span>

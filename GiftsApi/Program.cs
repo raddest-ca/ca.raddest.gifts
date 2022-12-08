@@ -48,6 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, JoinGroupAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, WishlistAuthorizationCrudHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, CardAuthorizationCrudHandler>();
 
 
 // cors

@@ -69,5 +69,10 @@ Authorization: Bearer {{login.response.body.token}}
 
 ### get wishlits
 
-GET {{baseUrl}}/api/group/48e75e47-ca84-4751-8f77-e79126d36d57/wishlist
+GET {{baseUrl}}/api/group/ff0f5751-e1e0-4c5f-82ec-4f6db6863740/wishlist
+Authorization: Bearer {{login.response.body.token}}
+
+### get cards
+
+GET {{baseUrl}}/api/group/ff0f5751-e1e0-4c5f-82ec-4f6db6863740/wishlist/4dd94a31-a357-4a15-81c1-875873f67387/card
 Authorization: Bearer {{login.response.body.token}}

@@ -21,7 +21,37 @@ public class CardController : ControllerBase
     public class CreateCardPayload
     {
         public string Content { get; set; }
-        public bool VisibileToListOwner {get; set;}
+        public bool VisibleToListOwner {get; set;}
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get(Guid groupId, Guid wishlistId)
+    {
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("group not found");
+        }
+
+        var wishlist = await _services.TableClient.GetWishlistIfExistsAsync(groupId, wishlistId);
+        if (wishlist == null)
+        {
+            return BadRequest("wishlist not found");
+        }
+
+        var requirement = new WishlistScopedOperationAuthorizationRequirement
+        {
+            Wishlist = wishlist,
+            Group = group,
+            Requirement = CrudRequirements.Read,
+        };
+
+        var cards = await _services.TableClient.QueryAsync<CardEntity>(filter: $"PartitionKey eq 'Group:{groupId}:Wishlist:{wishlistId}:Card'")
+            .Select(cardEntity => new Card { Entity = cardEntity})
+            .WhereAwait(async card => (await _services.AuthService.AuthorizeAsync(HttpContext.User, card, requirement)).Succeeded)
+            .ToArrayAsync();
+
+        return new JsonResult(cards);
     }
 
     [HttpPost]
@@ -34,7 +64,7 @@ public class CardController : ControllerBase
             GroupId = groupId,
             WishlistId = wishlistId,
             Content = payload.Content,
-            VisibleToListOwner = payload.VisibileToListOwner,
+            VisibleToListOwner = payload.VisibleToListOwner,
         };
         var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
         if (group == null)

@@ -22,16 +22,36 @@
         });
         if (resp.ok) {
             await apiInvalidate(`/group/${groupId}/wishlist`);
-            // await invalidate(`/api/group/${groupId}/wishlist`);
         } else {
             postError = resp.errorMessage;
         }
     }
 
     let addCardActive: Record<string,boolean> = {}
-    $: data.data?.wishlists.forEach(wishlist => {
+    let addCardContent: Record<string,string> = {};
+    data.data?.wishlists.forEach(wishlist => {
         addCardActive[wishlist.id] = false;
+        addCardContent[wishlist.id] = "";
     });
+
+    function initAddCardInput(el: HTMLInputElement) {
+        el.focus();
+    }
+
+    async function addCard(wishlistId: string, content: string) {
+        const resp = await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card`, {
+            method: "POST",
+            body: JSON.stringify({
+                Content: content,
+                VisibleToListOwner: true,
+            }),
+        });
+        if (resp.ok) {
+            await apiInvalidate(`/group/${groupId}/wishlist/${wishlistId}/card`);
+        } else {
+            postError = resp.errorMessage;
+        }
+    }
 </script>
 
 <ErrorMessage error={!data.ok ? data.errorMessage : null}/>
@@ -53,7 +73,11 @@
             </div>
             {#if addCardActive[wishlist.id]}
                 <div>
-                    <input class="mt-1 rounded-md" placeholder="beans"/>
+                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContent[wishlist.id])}>
+                        <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContent[wishlist.id]} use:initAddCardInput/>
+                        <button type="submit" class="hidden">Submit</button>
+                    </form>
+
                 </div>
             {/if}
             <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>{addCardActive[wishlist.id]=true;}}>Add a card</button>
