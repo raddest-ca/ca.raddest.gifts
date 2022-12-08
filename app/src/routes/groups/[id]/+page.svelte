@@ -27,6 +27,11 @@
             postError = resp.errorMessage;
         }
     }
+
+    let addCardActive: Record<string,boolean> = {}
+    $: data.data?.wishlists.forEach(wishlist => {
+        addCardActive[wishlist.id] = false;
+    });
 </script>
 
 <ErrorMessage error={!data.ok ? data.errorMessage : null}/>
@@ -46,7 +51,12 @@
             <div>
                 
             </div>
-            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm">Add a card</button>
+            {#if addCardActive[wishlist.id]}
+                <div>
+                    <input class="mt-1 rounded-md" placeholder="beans"/>
+                </div>
+            {/if}
+            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>{addCardActive[wishlist.id]=true;}}>Add a card</button>
         </div>
         {/each}
     </div>

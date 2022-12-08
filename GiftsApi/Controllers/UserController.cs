@@ -21,7 +21,7 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateUserPayload payload)
     {
-        var user = await _services.TableClient.GetUserByUsernameAsync(payload.UserLoginName);
+        var user = await _services.TableClient.GetUserByUsernameIfExistsAsync(payload.UserLoginName);
         if (user != null) {
             return Conflict();
         }

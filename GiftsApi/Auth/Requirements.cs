@@ -26,3 +26,10 @@ public class GroupScopedOperationAuthorizationRequirement : IAuthorizationRequir
     public Group Group { get; set; }
     public OperationAuthorizationRequirement Requirement { get; set; }
 }
+
+public class WishlistScopedOperationAuthorizationRequirement : IAuthorizationRequirement
+{
+    public Wishlist Wishlist { get; set; }
+    public Group Group { get; set; }
+    public OperationAuthorizationRequirement Requirement { get; set; }
+}

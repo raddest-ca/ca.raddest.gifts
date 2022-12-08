@@ -64,7 +64,7 @@ public class TokenController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] LoginPayload request)
     {
-        var user = await _services.TableClient.GetUserByUsernameAsync(request.UserLoginName);
+        var user = await _services.TableClient.GetUserByUsernameIfExistsAsync(request.UserLoginName);
         if (user == null)
         {
             return ValidationProblem("Couldn't find user");

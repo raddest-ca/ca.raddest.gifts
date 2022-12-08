@@ -61,7 +61,7 @@ public class GroupController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetGroup(Guid id)
     {
-        var group = await _services.TableClient.GetGroupByIdAsync(id);
+        var group = await _services.TableClient.GetGroupIfExistsAsync(id);
         if (group == null)
         {
             return NotFound();
@@ -86,14 +86,14 @@ public class GroupController : ControllerBase
     public async Task<IActionResult> JoinGroup([FromBody] JoinGroupPayload payload)
     {
         // lookup group
-        var group = await _services.TableClient.GetGroupByIdAsync(payload.GroupId);
+        var group = await _services.TableClient.GetGroupIfExistsAsync(payload.GroupId);
         if (group == null)
         {
             return NotFound();
         }
 
         // validate join request
-        var auth = await _services.AuthService.AuthorizeAsync(
+        var authResult = await _services.AuthService.AuthorizeAsync(
             HttpContext.User,
             group,
             new JoinGroupAuthorizationRequirement
@@ -102,14 +102,10 @@ public class GroupController : ControllerBase
             }
         );
 
-        if (!auth.Succeeded)
+        if (!authResult.Succeeded)
         {
-            return Problem(
-                detail: string.Join(",", auth.Failure?.FailureReasons.Select(x => x.Message) ?? new string[0]),
-                statusCode: StatusCodes.Status403Forbidden
-            );
+            return authResult.ToActionResult();
         }
-
 
         // add user to group
         group.Members = group.Members.Append(HttpContext.User.GetUserId()!.Value).ToArray();
@@ -124,7 +120,7 @@ public class GroupController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupPayload payload)
     {
-        var group = await _services.TableClient.GetGroupByIdAsync(payload.GroupId);
+        var group = await _services.TableClient.GetGroupIfExistsAsync(payload.GroupId);
         if (group == null)
         {
             return NotFound();
@@ -133,7 +129,7 @@ public class GroupController : ControllerBase
         var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, group, CrudRequirements.Delete);
         if (!authResult.Succeeded)
         {
-            return new ForbidResult();
+            return authResult.ToActionResult();
         }
 
         await _services.TableClient.DeleteEntityAsync(group.Entity.PartitionKey, group.Entity.RowKey);
