@@ -1,3 +1,4 @@
+import { invalidate } from "$app/navigation";
 import { error } from "@sveltejs/kit";
 import { headers as headersStore, loggedIn as loggedInStore } from "../stores/auth";
 
@@ -31,9 +32,14 @@ export async function assertAuth(returnUrl: string | URL) {
 	}
 }
 
-export function mergeResults<V, T extends Record<string, ApiResponse<V>>>(
+// thank u copilot for helping with this lmao
+type MergedApiResponse<T extends Record<string, ApiResponse<T[keyof T] extends ApiResponse<infer V> ? V : never>>> = ApiResponse<{
+	[K in keyof T]: T[K] extends ApiResponse<infer V> ? V : never;
+}>;
+
+export function mergeResults<T extends Record<string, ApiResponse<unknown>>>(
 	data: T,
-): ApiResponse<Record<keyof T, V>> {
+): MergedApiResponse<T> {
 	const errors = Object.values(data)
 		.filter((x): x is FailureResponse<T> => !x.ok)
 		.map((x) => x.errorMessage);
@@ -41,10 +47,12 @@ export function mergeResults<V, T extends Record<string, ApiResponse<V>>>(
 		return { errorMessage: errors.join("; "), ok: false };
 	}
 	return {
-		data: Object.entries(data as Record<keyof T, SuccessResponse<V>>).reduce((map, v) => {
+		data: Object.entries(data as Record<keyof T, SuccessResponse<T[keyof T] extends ApiResponse<infer V> ? V : never>>).reduce((map, v) => {
 			map[v[0] as keyof T] = v[1].data;
 			return map;
-		}, {} as Record<keyof T, V>),
+		}, {} as {
+			[K in keyof T]: T[K] extends ApiResponse<infer V> ? V : never;
+		}),
 		ok: true,
 	};
 }
@@ -82,4 +90,8 @@ export async function apiFetch<T>(
 	} catch (e) {
 		return { errorMessage: `Unknown API error - ${e}`, ok: false };
 	}
+}
+
+export async function apiInvalidate(path: string) {
+	await invalidate(`${import.meta.env.VITE_API_URL}${path}`);
 }

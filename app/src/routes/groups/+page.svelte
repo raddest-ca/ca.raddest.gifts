@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-    import { apiFetch } from "../../api/client";
+    import { apiFetch, apiInvalidate } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
 	import { goto, invalidate } from "$app/navigation";
 	import { page } from "$app/stores";
@@ -25,7 +25,7 @@
             }),
         });
         if (resp.ok) {
-            await invalidate($page.url);
+            await apiInvalidate("/group");
         } else {
             error = resp.errorMessage;
         }
