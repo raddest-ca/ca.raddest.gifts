@@ -15,6 +15,7 @@ export interface JWT {
 
 const existing = browser ? localStorage.getItem("auth") : null;
 export const jwt = writable<string | null>(existing ?? null);
+export const refreshToken = writable<string | null>(existing ?? null);
 export const jwtData = writable<JWT | null>(null);
 export const loggedIn = writable<boolean>(false);
 export const name = writable<string | null>(null);

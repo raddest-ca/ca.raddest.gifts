@@ -3,7 +3,7 @@
 	import { page } from "$app/stores";
 	import { apiFetch } from "../../api/client";
 	import ErrorMessage from "../../components/ErrorMessage.svelte";
-    import { jwt, loggedIn } from "../../stores/auth"
+    import { jwt, loggedIn, refreshToken } from "../../stores/auth"
 
     let username = "";
     let password = "";
@@ -13,7 +13,7 @@
 
     async function login() {
         error = "";
-        const resp = await apiFetch<{token:string}>(fetch, "/Token", {
+        const resp = await apiFetch<{token:string; refreshToken: string}>(fetch, "/Token", {
             method: "POST",
             body: JSON.stringify({
                 UserLoginName: username,
@@ -22,6 +22,7 @@
         });
         if (resp.ok) {
             jwt.set(resp.data.token);
+            refreshToken.set(resp.data.refreshToken);
             await goto(returnUrl);
         } else {
             error=resp.errorMessage;

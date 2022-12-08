@@ -22,6 +22,16 @@ Content-Type: application/json
     "UserPassword": "{{password}}"
 }
 
+### refresh
+
+# @name refresh
+POST {{baseUrl}}/api/Token/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "{{login.response.body.refreshToken}}"
+}
+
 ### create group
 
 POST {{baseUrl}}/api/Groups

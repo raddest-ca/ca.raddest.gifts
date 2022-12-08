@@ -44,3 +44,30 @@ public class UserEntity : ITableEntity
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
+
+public class RefreshToken
+{
+    public Guid UserId {get; set;}
+    public string Token { get; set; }
+    [JsonIgnore]
+    private ETag _eTag { get; set;}
+    [JsonIgnore]
+    public RefreshTokenEntity Entity
+    {
+        get => new RefreshTokenEntity
+        {
+            PartitionKey = $"User:{UserId}:RefreshToken",
+            RowKey = Token,
+            ETag = _eTag,
+        };
+        set => (UserId, Token, _eTag) = (Guid.Parse(value.PartitionKey.Split(':')[1]), value.RowKey, value.ETag);
+    }
+}
+
+public class RefreshTokenEntity : ITableEntity
+{
+    public string PartitionKey { get; set; }
+    public string RowKey { get; set; }
+    public DateTimeOffset? Timestamp { get; set; }
+    public ETag ETag { get; set; }
+}
