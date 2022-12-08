@@ -9,8 +9,9 @@ export interface DetailedError {
 	traceId: string;
 	errors: Record<string, string>;
 }
-
-export type ApiResponse<T> = { data: T; ok: true } | { errorMessage: string; ok: false };
+export type SuccessResponse<T> = { data: T; ok: true };
+export type FailureResponse<T> = { errorMessage: string; ok: false };
+export type ApiResponse<T> = SuccessResponse<T> | FailureResponse<T>;
 
 let authHeaders: Record<string, string> | null = null;
 headersStore.subscribe((value) => {
@@ -28,6 +29,24 @@ export async function assertAuth(returnUrl: string | URL) {
 			returnUrl: returnUrl.toString(),
 		});
 	}
+}
+
+export function mergeResults<V, T extends Record<string, ApiResponse<V>>>(
+	data: T,
+): ApiResponse<Record<keyof T, V>> {
+	const errors = Object.values(data)
+		.filter((x): x is FailureResponse<T> => !x.ok)
+		.map((x) => x.errorMessage);
+	if (errors.length > 0) {
+		return { errorMessage: errors.join("; "), ok: false };
+	}
+	return {
+		data: Object.entries(data as Record<keyof T, SuccessResponse<V>>).reduce((map, v) => {
+			map[v[0] as keyof T] = v[1].data;
+			return map;
+		}, {} as Record<keyof T, V>),
+		ok: true,
+	};
 }
 
 export async function apiFetch<T>(

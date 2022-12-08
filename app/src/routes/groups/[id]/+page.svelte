@@ -6,7 +6,7 @@
 	import { page } from "$app/stores";
 
     export let data: PageData;
-    $: error = data?.errorMessage;
+    $: error = !data.ok ? data.errorMessage : null;
     $: console.log(data);
 
     let newWishlistName = "";
