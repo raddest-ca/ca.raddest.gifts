@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-    import { jwt } from "../../stores/auth"
 
     let username = "";
     let password = "";

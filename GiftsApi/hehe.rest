@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:5177
-@username = asd
+@username = beans
 @password = asd
 
 ### create user

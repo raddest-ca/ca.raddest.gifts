@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-	import ErrorMessage from "../../../components/ErrorMessage.svelte";
-	import { apiFetch, apiInvalidate } from "../../../api/client";
-	import { goto, invalidate, invalidateAll } from "$app/navigation";
+	import { apiFetch } from "../../../api/client";
+	import { invalidateAll } from "$app/navigation";
 	import { page } from "$app/stores";
+	import type { Card } from "../../../api/types";
 
     export let data: PageData;
     $: console.log(data);
@@ -18,12 +18,14 @@
                 DisplayName: displayName,
             }),
         });
-        await apiInvalidate(`/group/${groupId}/wishlist`);
+        await invalidateAll();
     }
 
     let showWishlistAddCardEditor: Record<string,boolean> = {}
     let showWishlistAddOwnerEditor: Record<string,boolean> = {}
     let showWishlistNameEditor: Record<string,boolean> = {};
+    let showCardContentEditor: Record<string,boolean> = {};
+    let cardContentInputs: Record<string,string> = {};
     let wishlistNameInputs: Record<string,string> = {};
     let addOwnerUserIdInputs: Record<string,string> = {};
     let addCardContentInputs: Record<string,string> = {};
@@ -33,14 +35,23 @@
         addCardContentInputs[wishlist.id] = "";
         wishlistNameInputs[wishlist.id] = wishlist.displayName;
     });
+    for (const [wishlistId, cards] of Object.entries(data?.cards ?? {})) {
+        for (const [cardId, card] of Object.entries(cards)) {
+            showCardContentEditor[cardId] = false;
+            cardContentInputs[cardId] = card.content;
+        }
+    }
     async function addCard(wishlistId: string, content: string) {
-        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card`, {
+        if (content.trim().length === 0) return;
+        var resp = await apiFetch<Card>(fetch, `/group/${groupId}/wishlist/${wishlistId}/card`, {
             method: "POST",
             body: JSON.stringify({
                 Content: content,
                 VisibleToListOwners: true,
             }),
         });
+        cardContentInputs[resp.id] = resp.content;
+        showCardContentEditor[resp.id] = false;
         showWishlistAddCardEditor[wishlistId] = false;
         addCardContentInputs[wishlistId] = "";
         await invalidateAll();
@@ -52,6 +63,7 @@
                 Owners: data.wishlists[wishlistId].owners.concat(ownerId),
             }),
         });
+        showWishlistAddOwnerEditor[wishlistId] = false;
         await invalidateAll();
     }
     async function updateWishlistName(wishlistId: string, displayName: string) {
@@ -61,9 +73,29 @@
                 DisplayName: displayName,
             }),
         });
+        showWishlistNameEditor[wishlistId] = false;
         await invalidateAll();
     }
-    function initFocus(el: HTMLInputElement | HTMLSelectElement) {
+    async function updateCardContent(wishlistId: string, cardId: string, content: string) {
+        if (content.trim().length === 0) return await deleteCard(wishlistId, cardId);
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card/${cardId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                Content: content,
+            }),
+        });
+        showCardContentEditor[cardId] = false;
+        await invalidateAll();
+    }
+    async function deleteCard(wishlistId: string, cardId: string) {
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card/${cardId}`, {
+            method: "DELETE",
+        });
+        delete data.cards[cardId];
+        delete showCardContentEditor[cardId];
+        await invalidateAll();
+    }
+    function initFocus(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
         el.focus();
     }
 </script>
@@ -86,13 +118,23 @@
             <hr>
             <ul>
                 {#each Object.values(data.cards[wishlist.id]) as card}
-                    <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">{card.content}</li>
+                    <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">
+                        {#if showCardContentEditor[card.id]}
+                            <form on:submit|preventDefault={()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id])}>
+                                <textarea class="p-1 rounded-md shadow-lg" placeholder="beans" bind:value={cardContentInputs[card.id]} on:blur={()=>showCardContentEditor[card.id] = false} use:initFocus/>
+                            </form>
+                        {:else}
+                            <button class="w-full text-left" on:click={()=>showCardContentEditor[card.id] = true}>
+                                {card.content}
+                            </button>
+                        {/if}
+                    </li>
                 {/each}
             </ul>
             {#if showWishlistAddCardEditor[wishlist.id]}
                 <div>
                     <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
-                        <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContentInputs[wishlist.id]} on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false} use:initFocus/>
+                        <textarea class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContentInputs[wishlist.id]} on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false} use:initFocus/>
                         <button type="submit" class="hidden">Submit</button>
                     </form>
 
@@ -103,7 +145,6 @@
             {#if showWishlistAddOwnerEditor[wishlist.id]}
                 <div>
                     <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
-                        <!-- <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContent[wishlist.id]} on:blur={()=>addCardActive[wishlist.id] = false} use:initAddCardInput/> -->
                         <select class="p-1 rounded-md shadow-lg" bind:value={addOwnerUserIdInputs[wishlist.id]} use:initFocus>
                             {#each Object.values(data.users) as user}
                                 <option value={user.id}>{user.displayName}</option>

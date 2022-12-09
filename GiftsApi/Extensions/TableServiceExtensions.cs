@@ -15,6 +15,13 @@ public static class TableServiceExtensions
         return new Wishlist { Entity = entity.Value };
     }
 
+    public static async Task<Card?> GetCardIfExistsAsync(this TableClient table, Guid groupId, Guid wishlistId, Guid cardId)
+    {
+        var entity = await table.GetEntityIfExistsAsync<CardEntity>($"Group:{groupId}:Wishlist:{wishlistId}:Card", cardId.ToString());
+        if (!entity.HasValue) return null;
+        return new Card { Entity = entity.Value };
+    }
+
     public static async Task<Group?> GetGroupIfExistsAsync(this TableClient table, Guid id)
     {
         var entity = await table.GetEntityIfExistsAsync<GroupEntity>("Group", id.ToString());

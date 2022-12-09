@@ -18,7 +18,7 @@
                 UserId: $auth.userId,
             }),
         });
-        await refreshJwt();
+        await refreshJwt(fetch);
     }
     let displayName = $auth.name ?? "";
 </script>
