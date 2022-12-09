@@ -10,10 +10,6 @@ export interface DetailedError {
 	traceId: string;
 	errors: Record<string, string>;
 }
-export type SuccessResponse<T> = { data: T; ok: true };
-export type FailureResponse = { errorMessage: string; ok: false };
-export type ApiResponse<T> = SuccessResponse<T> | FailureResponse;
-
 
 let $authData = new AuthData();
 auth.subscribe(v => $authData = v);
@@ -65,12 +61,17 @@ export async function apiFetch<T>(
 			},
 		});
 		if (resp.ok) {
-			return await resp.json()
+			const text = await resp.text();
+			if (text.trim().length === 0) {
+				console.warn("apiFetch response empty, returning empty object");
+				return {} as T;
+			}
+			return JSON.parse(text);
 		} else {
-			throw await error(resp.status, await resp.text());
+			throw await error(resp.status, "apiFetch response not ok: " + await resp.text());
 		}
 	} catch (e) {
-		throw await error(400, Object.prototype.toString.call(e));
+		throw await error(400, "apiFetch errored: " + e.message + " --- " + JSON.stringify(e));
 	}
 }
 
@@ -82,38 +83,3 @@ export function apiDepends(depends:(...deps: string[]) => void, ...deps: string[
 		depends(`${import.meta.env.VITE_API_URL}${path}`);
 	}
 }
-
-
-
-
-// // thank u copilot for helping with this lmao
-// type MergedApiResponse<
-// 	T extends Record<string, ApiResponse<T[keyof T] extends ApiResponse<infer V> ? V : never>>,
-// > = ApiResponse<{
-// 	[K in keyof T]: T[K] extends ApiResponse<infer V> ? V : never;
-// }>;
-
-// export function mergeResults<T extends Record<string, ApiResponse<unknown>>>(
-// 	data: T,
-// ): MergedApiResponse<T> {
-// 	const errors = Object.values(data)
-// 		.filter((x): x is FailureResponse<T> => !x.ok)
-// 		.map((x) => x.errorMessage);
-// 	if (errors.length > 0) {
-// 		return { errorMessage: errors.join("; "), ok: false };
-// 	}
-// 	return {
-// 		data: Object.entries(
-// 			data as Record<keyof T, SuccessResponse<T[keyof T] extends ApiResponse<infer V> ? V : never>>,
-// 		).reduce(
-// 			(map, v) => {
-// 				map[v[0] as keyof T] = v[1].data;
-// 				return map;
-// 			},
-// 			{} as {
-// 				[K in keyof T]: T[K] extends ApiResponse<infer V> ? V : never;
-// 			},
-// 		),
-// 		ok: true,
-// 	};
-// }
