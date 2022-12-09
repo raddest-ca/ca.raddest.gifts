@@ -6,9 +6,15 @@ export interface Group {
 	owners: string[];
 }
 
+export interface User {
+	id: string;
+	displayName: string;
+}
+
 export interface Wishlist {
 	id: string;
 	displayName: string;
+	owners: string[];
 }
 
 export interface Card {

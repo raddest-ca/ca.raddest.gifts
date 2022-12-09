@@ -3,6 +3,8 @@ import type { Group } from '../../api/types';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({fetch, url}) => {
-    await assertAuth(url);
-    return await apiFetch<Group[]>(fetch, "/group");
+    await assertAuth(fetch, url);
+    return {
+        groups: await apiFetch<Group[]>(fetch, "/group"),
+    };
 };

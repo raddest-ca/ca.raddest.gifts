@@ -76,3 +76,7 @@ Authorization: Bearer {{login.response.body.token}}
 
 GET {{baseUrl}}/api/group/ff0f5751-e1e0-4c5f-82ec-4f6db6863740/wishlist/4dd94a31-a357-4a15-81c1-875873f67387/card
 Authorization: Bearer {{login.response.body.token}}
+
+### batch group
+GET {{baseUrl}}/api/batch/group/ff0f5751-e1e0-4c5f-82ec-4f6db6863740
+Authorization: Bearer {{login.response.body.token}}

@@ -1,13 +1,9 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
     import { apiFetch, apiInvalidate } from "../../api/client";
-	import ErrorMessage from "../../components/ErrorMessage.svelte";
-	import { goto, invalidate } from "$app/navigation";
-	import { page } from "$app/stores";
 
     export let data: PageData;
-    $: error = data?.errorMessage;
-    $: groups = data?.data ?? [];
+    $: console.log(data);
     let groupInviteCode = "";
     let groupCreationDisplayName = "";
     let groupCreationPassword = "";
@@ -17,22 +13,17 @@
     }
 
     async function createGroup(displayName: string, password: string) {
-        const resp = await apiFetch(fetch, "/group", {
+        await apiFetch(fetch, "/group", {
             method: "POST",
             body: JSON.stringify({
                 GroupDisplayName: displayName,
                 GroupPassword: password,
             }),
         });
-        if (resp.ok) {
-            await apiInvalidate("/group");
-        } else {
-            error = resp.errorMessage;
-        }
+        await apiInvalidate("/group");
     }
 </script>
 
-<ErrorMessage {error}/>
 
 <section>
     <h1 class="text-xl font-bold">Join a group</h1>
@@ -57,11 +48,11 @@
 <section>
     <h1 class="text-xl font-bold">My Groups</h1>
     <hr>
-    {#if groups.length === 0}
+    {#if data.groups.length === 0}
         <span>You are in no groups.</span>
     {:else}
         <ul>
-            {#each groups as group}
+            {#each data.groups as group}
             <li><a class="underline" href="/groups/{group.id}">{group.displayName}</a></li>
             {/each}
         </ul>

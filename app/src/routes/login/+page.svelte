@@ -2,17 +2,13 @@
 	import { goto } from "$app/navigation";
 	import { page } from "$app/stores";
 	import { apiFetch } from "../../api/client";
-	import ErrorMessage from "../../components/ErrorMessage.svelte";
-    import { jwt, loggedIn, refreshToken } from "../../stores/auth"
-
+	import { auth } from "../../stores/auth";
     let username = "";
     let password = "";
-    let error:string|null=null;
 
     const returnUrl = $page.url.searchParams.get("returnUrl") ?? "/";
 
     async function login() {
-        error = "";
         const resp = await apiFetch<{token:string; refreshToken: string}>(fetch, "/Token", {
             method: "POST",
             body: JSON.stringify({
@@ -20,17 +16,14 @@
                 UserPassword: password,
             }),
         });
-        if (resp.ok) {
-            jwt.set(resp.data.token);
-            refreshToken.set(resp.data.refreshToken);
-            await goto(returnUrl);
-        } else {
-            error=resp.errorMessage;
-        }
+        $auth.jwt = resp.token;
+        $auth.refreshToken = resp.refreshToken;
+        auth.set($auth);
+        await goto(returnUrl);
     }
 
     // If we're already logged in, redirect to the return URL
-    if ($loggedIn) {
+    if ($auth.loggedIn) {
         goto(returnUrl);
     }
 </script>
@@ -49,7 +42,6 @@
                 <input type="password" name="password" id="password" bind:value={password} />
             </div>
         </div>
-        <ErrorMessage {error} />
         <button class="rounded-xl bg-slate-200 p-2 drop-shadow-lg m-2" type="submit">Login</button>
     </form>
 </main>

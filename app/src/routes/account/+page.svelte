@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { apiFetch } from "../../api/client";
-    import { name, jwt, refreshJwt, jwtData } from "../../stores/auth";
+	import { apiFetch, refreshJwt } from "../../api/client";
+	import { auth, AuthData } from "../../stores/auth";
 
     async function logout() {
-        jwt.set(null);
+        auth.set(new AuthData());
         await goto("/");
     }
     async function updateName(newName: string) {
@@ -15,17 +15,15 @@
             },
             body: JSON.stringify({
                 displayName: newName,
-                UserId: $jwtData?.sub,
+                UserId: $auth.userId,
             }),
         });
-        if (res.ok) {
-            await refreshJwt();
-        }
+        await refreshJwt();
     }
-    let displayName = $name ?? "";
+    let displayName = $auth.name ?? "";
 </script>
 
-<h1 class="text-xl font-bold">Account - {$name}</h1>
+<h1 class="text-xl font-bold">Account - {$auth.name}</h1>
 <hr>
 <button type="button" class="underline" on:click={logout}>Log out</button>
 <form class="mt-2 bg-white p-2" on:submit|preventDefault={()=>updateName(displayName)}>

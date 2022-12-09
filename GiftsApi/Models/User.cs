@@ -10,6 +10,7 @@ public class User
 {
     public Guid Id { get; set; }
 
+    [JsonIgnore]
     public string LoginName { get; set; }
     public string DisplayName { get; set; }
     [JsonIgnore]
