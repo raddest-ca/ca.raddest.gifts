@@ -4,6 +4,7 @@
 	import { invalidateAll } from "$app/navigation";
 	import { page } from "$app/stores";
 	import type { Card } from "../../../api/types";
+    import SvelteMarkdown from "svelte-markdown";
 
     export let data: PageData;
     $: console.log(data);
@@ -95,8 +96,15 @@
         delete showCardContentEditor[cardId];
         await invalidateAll();
     }
-    function initFocus(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+    function initFocus(el: any) {
+        console.log("foc", el);
         el.focus();
+    }
+    function overrideShiftEnter(e: KeyboardEvent, callback: () => void) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            callback();
+        }
     }
 </script>
 
@@ -121,11 +129,19 @@
                     <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">
                         {#if showCardContentEditor[card.id]}
                             <form on:submit|preventDefault={()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id])}>
-                                <textarea class="p-1 rounded-md shadow-lg" placeholder="beans" bind:value={cardContentInputs[card.id]} on:blur={()=>showCardContentEditor[card.id] = false} use:initFocus/>
+                                <textarea
+                                    class="p-1 rounded-md shadow-lg"
+                                    placeholder="beans"
+                                    bind:value={cardContentInputs[card.id]}
+                                    on:blur={()=>showCardContentEditor[card.id] = false}
+                                    on:keydown={e => overrideShiftEnter(e, ()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id]))}
+                                    use:initFocus
+                                />
                             </form>
                         {:else}
-                            <button class="w-full text-left" on:click={()=>showCardContentEditor[card.id] = true}>
-                                {card.content}
+                            <button class="w-full text-left prose" on:click={()=>showCardContentEditor[card.id] = true}>
+                                <SvelteMarkdown bind:source={card.content} />
+                                <!-- {card.content} -->
                             </button>
                         {/if}
                     </li>
@@ -134,7 +150,14 @@
             {#if showWishlistAddCardEditor[wishlist.id]}
                 <div>
                     <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
-                        <textarea class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContentInputs[wishlist.id]} on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false} use:initFocus/>
+                        <textarea
+                            class="mt-1 p-1 rounded-md shadow-lg"
+                            placeholder="beans"
+                            bind:value={addCardContentInputs[wishlist.id]}
+                            on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false}
+                            on:keydown={e => overrideShiftEnter(e, ()=>addCard(wishlist.id, addCardContentInputs[wishlist.id]))}
+                            use:initFocus
+                        />
                         <button type="submit" class="hidden">Submit</button>
                     </form>
 
