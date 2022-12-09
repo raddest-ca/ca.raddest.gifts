@@ -28,7 +28,7 @@ export async function refreshJwt(fetch: typeof window.fetch) {
 	refreshingJwt = true;
 	try {
 		console.log("Refreshing JWT with refresh token");
-		if ($authData.refreshToken === null) {
+		if (($authData.refreshToken ?? "").trim().length === 0) {
 			console.log("refresh token not found uwu");
 			return false;
 		}
@@ -51,7 +51,7 @@ export async function apiFetch<T>(
 	options: RequestInit = {},
 ): Promise<T> {
 	try {
-		if ($authData.expired && !refreshingJwt) await refreshJwt(fetch);
+		if ($authData.expired && !refreshingJwt) await refreshJwt(fetch).catch(console.warn);
 		const resp = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
 			...options,
 			headers: {
