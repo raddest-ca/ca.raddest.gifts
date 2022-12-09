@@ -75,4 +75,49 @@ public class WishlistController : ControllerBase
             });
         return new JsonResult(await items.ToArrayAsync());
     }
+
+    public class UpdateWishlistPayload
+    {
+        public string? DisplayName { get; set; }
+        public Guid[]? Owners {get; set;}
+    }
+    [HttpPatch]
+    [Route("{wishlistId:guid}")]
+    public async Task<IActionResult> Update(Guid groupId, Guid wishlistId, [FromBody] UpdateWishlistPayload payload)
+    {
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("Group not found");
+        }
+
+        var wishlist = await _services.TableClient.GetWishlistIfExistsAsync(groupId, wishlistId);
+        if (wishlist == null)
+        {
+            return BadRequest("Wishlist not found");
+        }
+
+        var requirement = new GroupScopedOperationAuthorizationRequirement
+        {
+            Group = group,
+            Requirement = CrudRequirements.Update,
+        };
+        var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, wishlist, requirement);
+        if (!authResult.Succeeded)
+        {
+            return authResult.ToActionResult();
+        }
+
+        if (payload.DisplayName != null)
+        {
+            wishlist.DisplayName = payload.DisplayName;
+        }
+        if (payload.Owners != null)
+        {
+            wishlist.Owners = payload.Owners.Distinct().ToArray();
+        }
+
+        await _services.TableClient.UpdateEntityAsync(wishlist.Entity, wishlist.Entity.ETag);
+        return new JsonResult(wishlist);
+    }
 }

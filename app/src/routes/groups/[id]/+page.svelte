@@ -21,12 +21,17 @@
         await apiInvalidate(`/group/${groupId}/wishlist`);
     }
 
-    let addCardActive: Record<string,boolean> = {}
-    let addOwnerActive: Record<string,boolean> = {}
-    let addCardContent: Record<string,string> = {};
+    let showWishlistAddCardEditor: Record<string,boolean> = {}
+    let showWishlistAddOwnerEditor: Record<string,boolean> = {}
+    let showWishlistNameEditor: Record<string,boolean> = {};
+    let wishlistNameInputs: Record<string,string> = {};
+    let addOwnerUserIdInputs: Record<string,string> = {};
+    let addCardContentInputs: Record<string,string> = {};
     Object.values(data?.wishlists ?? {}).forEach(wishlist => {
-        addCardActive[wishlist.id] = false;
-        addCardContent[wishlist.id] = "";
+        showWishlistAddCardEditor[wishlist.id] = false;
+        showWishlistNameEditor[wishlist.id] = false;
+        addCardContentInputs[wishlist.id] = "";
+        wishlistNameInputs[wishlist.id] = wishlist.displayName;
     });
     async function addCard(wishlistId: string, content: string) {
         await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card`, {
@@ -36,11 +41,29 @@
                 VisibleToListOwners: true,
             }),
         });
-        addCardActive[wishlistId] = false;
-        addCardContent[wishlistId] = "";
+        showWishlistAddCardEditor[wishlistId] = false;
+        addCardContentInputs[wishlistId] = "";
         await invalidateAll();
     }
-    function initAddCardInput(el: HTMLInputElement) {
+    async function addListOwner(wishlistId: string, ownerId: string) {
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                Owners: data.wishlists[wishlistId].owners.concat(ownerId),
+            }),
+        });
+        await invalidateAll();
+    }
+    async function updateWishlistName(wishlistId: string, displayName: string) {
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                DisplayName: displayName,
+            }),
+        });
+        await invalidateAll();
+    }
+    function initFocus(el: HTMLInputElement | HTMLSelectElement) {
         el.focus();
     }
 </script>
@@ -53,25 +76,44 @@
     <div class="flex flex-wrap">
         {#each Object.values(data.wishlists) as wishlist}
         <div class="bg-slate-300 m-4 p-4 w-64">
-            <h2>{wishlist.displayName}</h2>
+            {#if showWishlistNameEditor[wishlist.id]}
+                <form on:submit={()=>updateWishlistName(wishlist.id, wishlistNameInputs[wishlist.id])}>
+                    <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={wishlistNameInputs[wishlist.id]} on:blur={()=>showWishlistNameEditor[wishlist.id] = false} use:initFocus/>
+                </form>
+            {:else}
+                <button on:click={()=>showWishlistNameEditor[wishlist.id] = true}>{wishlist.displayName}</button>
+            {/if}
             <hr>
             <ul>
                 {#each Object.values(data.cards[wishlist.id]) as card}
                     <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">{card.content}</li>
                 {/each}
             </ul>
-            {#if addCardActive[wishlist.id]}
+            {#if showWishlistAddCardEditor[wishlist.id]}
                 <div>
-                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContent[wishlist.id])}>
-                        <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContent[wishlist.id]} on:blur={()=>addCardActive[wishlist.id] = false} use:initAddCardInput/>
+                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
+                        <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContentInputs[wishlist.id]} on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false} use:initFocus/>
                         <button type="submit" class="hidden">Submit</button>
                     </form>
 
                 </div>
             {/if}
-            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>addCardActive[wishlist.id]=true}>Add a card</button>
-            <button class="text-sm text-slate-400 hover:underline" on:click={()=>addOwnerActive[wishlist.id]=true}>owned by {wishlist.owners.map(id => data.users[id].displayName).join(" and ")}</button>
+            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>showWishlistAddCardEditor[wishlist.id]=true}>Add a card</button>
+            <button class="text-sm text-slate-400 hover:underline" on:click={()=>showWishlistAddOwnerEditor[wishlist.id]=true}>owned by {wishlist.owners.map(id => data.users[id].displayName).join(" and ")}</button>
+            {#if showWishlistAddOwnerEditor[wishlist.id]}
+                <div>
+                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
+                        <!-- <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={addCardContent[wishlist.id]} on:blur={()=>addCardActive[wishlist.id] = false} use:initAddCardInput/> -->
+                        <select class="p-1 rounded-md shadow-lg" bind:value={addOwnerUserIdInputs[wishlist.id]} use:initFocus>
+                            {#each Object.values(data.users) as user}
+                                <option value={user.id}>{user.displayName}</option>
+                            {/each}
+                        </select>
+                        <button type="button" class=" rounded-md p-1 bg-slate-200 hover:bg-slate-400" on:click={addListOwner(wishlist.id, addOwnerUserIdInputs[wishlist.id])}>Add owner</button>
+                    </form>
 
+                </div>
+            {/if}
         </div>
         {/each}
     </div>

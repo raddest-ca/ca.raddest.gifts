@@ -27,20 +27,26 @@ export async function assertAuth(fetch: typeof window.fetch, returnUrl: string |
 	}
 }
 
-export async function refreshJwt(fetch: typeof window.fetch = window.fetch) {
-	console.log("Refreshing JWT with refresh token");
-	if ($authData.refreshToken === null) {
-		console.log("refresh token not found uwu");
-		return false;
+let refreshingJwt = false;
+export async function refreshJwt(fetch: typeof window.fetch) {
+	refreshingJwt = true;
+	try {
+		console.log("Refreshing JWT with refresh token");
+		if ($authData.refreshToken === null) {
+			console.log("refresh token not found uwu");
+			return false;
+		}
+		const resp = await apiFetch<{ token: string }>(fetch, "/Token/Refresh", {
+			method: "POST",
+			body: JSON.stringify({
+				refreshToken: $authData.refreshToken,
+			}),
+		});
+		$authData.jwt = resp.token;
+		auth.set($authData);
+	} finally {
+		refreshingJwt = false;
 	}
-	const resp = await apiFetch<{ token: string }>(fetch, "/Token/Refresh", {
-		method: "POST",
-		body: JSON.stringify({
-			refreshToken: $authData.refreshToken,
-		}),
-	});
-    $authData.jwt = resp.token;
-	auth.set($authData);
 }
 
 export async function apiFetch<T>(
@@ -49,6 +55,7 @@ export async function apiFetch<T>(
 	options: RequestInit = {},
 ): Promise<T> {
 	try {
+		if ($authData.expired && !refreshingJwt) await refreshJwt(fetch);
 		const resp = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
 			...options,
 			headers: {
