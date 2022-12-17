@@ -49,7 +49,7 @@
             method: "POST",
             body: JSON.stringify({
                 Content: content,
-                VisibleToListOwners: false,
+                VisibleToListOwners: data.wishlists[wishlistId].owners.includes($auth.userId),
             }),
         });
         cardContentInputs[resp.id] = resp.content;
@@ -238,13 +238,16 @@
                                     <button title="Add a tag"  type="button" class="p-0.5 hover:bg-slate-400 rounded-md">
                                         <i class="mi mi-tag"><span class="u-sr-only">Tag</span></i>
                                     </button>
-                                    <button title="Hide from owner" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setVisibleToOwners(wishlist.id, card.id, !card.visibleToListOwners)}>
-                                        {#if card.visibleToListOwners}
-                                            <i class="mi mi-eye"><span class="u-sr-only">Hide from owner</span></i>
-                                        {:else}
-                                            <i class="mi mi-eye-off"><span class="u-sr-only">Show to owner</span></i>
-                                        {/if}
-                                    </button>
+                                    <!-- don't let owners hide cards from themselves to prevent mis-clicks -->
+                                    {#if !wishlist.owners.includes($auth.userId)}
+                                        <button title="Toggle owner visibility" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setVisibleToOwners(wishlist.id, card.id, !card.visibleToListOwners)}>
+                                            {#if card.visibleToListOwners}
+                                                <i class="mi mi-eye"><span class="u-sr-only">Hide from owner</span></i>
+                                            {:else}
+                                                <i class="mi mi-eye-off"><span class="u-sr-only">Show to owner</span></i>
+                                            {/if}
+                                        </button>
+                                    {/if}
                                 </div>
                             {/if}
                         </li>
@@ -311,7 +314,10 @@
 <section>
     <h1 class="text-xl font-bold mt-4">Invite someone</h1>
     <hr class="my-2">
-    <span>Invite code: <input class="bg-gray-800 text-white p-2 rounded-md text-ellipsis" bind:value={inviteCode}/> <button class="underline text-blue-500" type="button" on:click={()=>navigator.clipboard.writeText(inviteCode)}>(copy)</button></span>
+    <span>Invite code: <input class="bg-gray-800 text-white p-2 rounded-md text-ellipsis" bind:value={inviteCode}/>
+    <button title="Copy code" type="button" on:click={()=>navigator.clipboard.writeText(inviteCode)}>
+        <i class="mi mi-clipboard"><span class="u-sr-only">Copy code</span></i>
+    </button></span>
 </section>
 <section>
     <h1 class="text-xl font-bold mt-4">Group actions</h1>
