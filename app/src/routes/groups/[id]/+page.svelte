@@ -12,6 +12,11 @@
     $: groupId = $page.params.id;
     $: inviteCode = `${groupId}:${data.group.password}`;
 
+    let groupDisplayNameInput = data.group.displayName;
+    let showGroupDisplayNameEditor = false;
+
+    let groupPasswordInput = data.group.password;
+
     let newWishlistName = "";
     async function createWishlist(displayName: string) {
         await apiFetch(fetch, `/group/${groupId}/wishlist`, {
@@ -165,13 +170,44 @@
         });
         await goto("/groups");
     }
+
+    async function updateGroupDisplayName(displayName: string) {
+        await apiFetch(fetch, `/group/${groupId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                DisplayName: displayName,
+            })
+        });
+        showGroupDisplayNameEditor = false;
+        await invalidateAll();
+    }
+    
+    async function updateGroupPassword(password: string) {
+        await apiFetch(fetch, `/group/${groupId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                Password: password,
+            })
+        });
+        showGroupDisplayNameEditor = false;
+        await invalidateAll();
+    }
+    
 </script>
 
 <svelte:head>
     <title>{data.group.displayName} - Group</title>
 </svelte:head>
 
-<h1 class="text-2xl font-bold">Group - {data.group.displayName}</h1>
+{#if showGroupDisplayNameEditor}
+    <form on:submit|preventDefault={()=>updateGroupDisplayName(groupDisplayNameInput)}>
+        <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={groupDisplayNameInput} on:blur={()=>showGroupDisplayNameEditor = false} use:initFocus/>
+    </form>
+{:else}
+    <button type="button" on:click={()=>showGroupDisplayNameEditor=true}>
+        <h1 class="text-2xl font-bold">Group - {data.group.displayName}</h1>
+    </button>
+{/if}
 <hr class="my-1">
 <section>
     <h1 class="text-xl font-bold mt-4">Members</h1>
@@ -218,7 +254,7 @@
                 <div>
                     {#if canModifyWishlist}
                         {#if showWishlistNameEditor[wishlist.id]}
-                            <form on:submit={()=>updateWishlistName(wishlist.id, wishlistNameInputs[wishlist.id])}>
+                            <form on:submit|preventDefault={()=>updateWishlistName(wishlist.id, wishlistNameInputs[wishlist.id])}>
                                 <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={wishlistNameInputs[wishlist.id]} on:blur={()=>showWishlistNameEditor[wishlist.id] = false} use:initFocus/>
                             </form>
                         {:else}
@@ -333,8 +369,15 @@
     </form>
 </section>
 <section>
-    <h1 class="text-xl font-bold mt-4">Invite someone</h1>
+    <h1 class="text-xl font-bold mt-4">Invitations</h1>
     <hr class="my-2">
+    {#if data.group.owners.includes($auth.userId)}
+        <form class="my-2" on:submit|preventDefault={()=>updateGroupPassword(groupPasswordInput)}>
+            <label for="groupPassword">Password: </label>
+            <input id="groupPassword" class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={groupPasswordInput}/>
+            <button class="rounded-xl bg-slate-200 p-2 drop-shadow-lg" type="submit">Apply</button>
+        </form>
+    {/if}
     <span>Invite code: <input class="bg-gray-800 text-white p-2 rounded-md text-ellipsis" bind:value={inviteCode}/>
     <button title="Copy code" type="button" on:click={()=>navigator.clipboard.writeText(inviteCode)}>
         <i class="mi mi-clipboard"><span class="u-sr-only">Copy code</span></i>

@@ -149,6 +149,43 @@ public class GroupController : ControllerBase
         return Ok();
     }
 
+    public class GroupUpdatePayload
+    {
+        public string? DisplayName {get; set;}
+        public string? Password {get; set;}
+    }
+    [HttpPatch("{groupId:guid}")]
+    public async Task<IActionResult> UpdateGroup(Guid groupId, [FromBody] GroupUpdatePayload payload)
+    {
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("group not found");
+        }
+
+        var authResult = await _services.AuthService.AuthorizeAsync(
+            HttpContext.User,
+            group,
+            CrudRequirements.Update
+        );
+
+        if (!authResult.Succeeded)
+        {
+            return authResult.ToActionResult();
+        }
+
+        if (payload.DisplayName != null)
+        {
+            group.DisplayName = payload.DisplayName;
+        }
+        if (payload.Password != null)
+        {
+            group.Password = payload.Password;
+        }
+        await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
+        return Ok();
+    }
+
     public class GroupMemberUpdatePayload
     {
         public bool IsOwner { get; set; }
