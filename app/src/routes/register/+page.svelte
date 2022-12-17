@@ -56,6 +56,6 @@
                 {error}
             </div>
         {/if}
-        <button class="rounded-xl bg-slate-200 p-2 drop-shadow-lg m-2" type="submit">Login</button>
+        <button class="rounded-xl bg-slate-200 p-2 drop-shadow-lg m-2" type="submit">Register</button>
     </form>
 </main>

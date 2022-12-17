@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
     import { apiFetch, apiInvalidate } from "../../api/client";
+	import { goto, invalidateAll } from "$app/navigation";
+    import { auth } from "../../stores/auth";
 
     export let data: PageData;
     $: console.log(data);
@@ -9,21 +11,32 @@
     let groupCreationPassword = "";
 
     async function joinGroup(inviteCode: string) {
-
+        const [groupId, password] = inviteCode.split(":");
+        await apiFetch(fetch, `/group/${groupId}/join`, {
+            method: "POST",
+            body: JSON.stringify({
+                UserId: $auth.userId,
+                GroupPassword: password,
+            }),
+        });
+        await goto(`/groups/${groupId}`);
     }
 
     async function createGroup(displayName: string, password: string) {
-        await apiFetch(fetch, "/group", {
+        const resp = await apiFetch<{id: string}>(fetch, "/group", {
             method: "POST",
             body: JSON.stringify({
                 GroupDisplayName: displayName,
                 GroupPassword: password,
             }),
         });
-        await apiInvalidate("/group");
+        await goto(`/groups/${resp.id}`);
     }
 </script>
 
+<svelte:head>
+    <title>Groups</title>
+</svelte:head>
 
 <section>
     <h1 class="text-xl font-bold">Join a group</h1>

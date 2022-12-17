@@ -16,3 +16,7 @@
         <li>Group exporting as json for owners</li>
     </ul>
 </main>
+
+<svelte:head>
+    <title>Welcome</title>
+</svelte:head>

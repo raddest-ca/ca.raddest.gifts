@@ -120,4 +120,34 @@ public class WishlistController : ControllerBase
         await _services.TableClient.UpdateEntityAsync(wishlist.Entity, wishlist.Entity.ETag);
         return new JsonResult(wishlist);
     }
+
+    [HttpDelete("{wishlistId:guid}")]
+    public async Task<IActionResult> Delete(Guid groupId, Guid wishlistId)
+    {
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("Group not found");
+        }
+
+        var wishlist = await _services.TableClient.GetWishlistIfExistsAsync(groupId, wishlistId);
+        if (wishlist == null)
+        {
+            return BadRequest("Wishlist not found");
+        }
+
+        var requirement = new GroupScopedOperationAuthorizationRequirement
+        {
+            Group = group,
+            Requirement = CrudRequirements.Delete,
+        };
+        var authResult = await _services.AuthService.AuthorizeAsync(HttpContext.User, wishlist, requirement);
+        if (!authResult.Succeeded)
+        {
+            return authResult.ToActionResult();
+        }
+
+        await _services.TableClient.DeleteWishlistAsync(wishlist);
+        return Ok();
+    }
 }

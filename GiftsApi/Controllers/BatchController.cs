@@ -33,14 +33,6 @@ public class BatchController : ControllerBase
             return authResult.ToActionResult();
         }
 
-        var users = await group.Members.Union(group.Owners)
-            .ToAsyncEnumerable()
-            .SelectAwait(async x => await _services.TableClient.GetEntityIfExistsAsync<UserEntity>("User", x.ToString()))
-            .Where(x => x.HasValue)
-            .Select(x => new User { Entity = x.Value })
-            .WhereAwait(async x => (await _services.AuthService.AuthorizeAsync(HttpContext.User, x, CrudRequirements.Read)).Succeeded)
-            .ToDictionaryAsync(x => x.Id);
-
         var wishlistReadRequirement = new GroupScopedOperationAuthorizationRequirement {
             Group = group,
             Requirement = CrudRequirements.Read,
@@ -67,6 +59,17 @@ public class BatchController : ControllerBase
                     .ToDictionaryAsync(x => x.Id)
             );
         }
+
+        
+        var users = await group.Members
+            .Union(group.Owners)
+            .Union(wishlists.Values.SelectMany(x => x.Owners))
+            .ToAsyncEnumerable()
+            .SelectAwait(async x => await _services.TableClient.GetEntityIfExistsAsync<UserEntity>("User", x.ToString()))
+            .Where(x => x.HasValue)
+            .Select(x => new User { Entity = x.Value })
+            .WhereAwait(async x => (await _services.AuthService.AuthorizeAsync(HttpContext.User, x, CrudRequirements.Read)).Succeeded)
+            .ToDictionaryAsync(x => x.Id);
 
         return new JsonResult(new
         {

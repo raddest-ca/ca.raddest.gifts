@@ -12,6 +12,10 @@
     onDestroy(()=>clearInterval(interval));
 
 </script>
+
+<svelte:head>
+	<link rel="stylesheet" href="https://unpkg.com/mono-icons@1.0.5/iconfont/icons.css" >
+</svelte:head>
   
 <header class="sm:w-full md:w-2/3 bg-slate-500 m-auto">
     <nav>
@@ -31,3 +35,21 @@
 <div class="sm:w-full md:w-2/3 bg-amber-100 m-auto p-4">
     <slot />
 </div>
+
+<style global>
+	.mi {
+		font-size: 1.4rem;
+        line-height: 1rem;
+        text-align: center;
+        vertical-align: middle;
+	}
+	/* Use this to make sure screen readers read something sensible when encountering the mi. If you are using the icons decoratively, you can omit the <span> */
+	.u-sr-only {
+		position: absolute;
+        left: -10000px;
+        top: auto;
+        width:1px;
+        height:1px;
+        overflow:hidden;
+	}
+</style>

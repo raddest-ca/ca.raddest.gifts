@@ -177,7 +177,7 @@ public class CardController : ControllerBase
             return authResult.ToActionResult();
         }
 
-        await _services.TableClient.DeleteEntityAsync(card.Entity.PartitionKey, card.Entity.RowKey, card.Entity.ETag);
+        await _services.TableClient.DeleteCardAsync(card);
         return Ok();
     }
 }

@@ -78,26 +78,25 @@ public class GroupController : ControllerBase
 
     public class JoinGroupPayload
     {
-        public Guid GroupId { get; set; }
+        public Guid UserId {get; set;}
         public string GroupPassword { get; set; }
     }
 
-    [HttpPost("join")]
-    public async Task<IActionResult> JoinGroup([FromBody] JoinGroupPayload payload)
+    [HttpPost("{groupId}/join")]
+    public async Task<IActionResult> JoinGroup(Guid groupId, [FromBody] JoinGroupPayload payload)
     {
-        // lookup group
-        var group = await _services.TableClient.GetGroupIfExistsAsync(payload.GroupId);
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
         if (group == null)
         {
             return BadRequest("group not found");
         }
 
-        // validate join request
         var authResult = await _services.AuthService.AuthorizeAsync(
             HttpContext.User,
             group,
             new JoinGroupAuthorizationRequirement
             {
+                UserId = payload.UserId,
                 UserProvidedPassword = payload.GroupPassword
             }
         );
@@ -107,20 +106,53 @@ public class GroupController : ControllerBase
             return authResult.ToActionResult();
         }
 
-        // add user to group
-        group.Members = group.Members.Append(HttpContext.User.GetUserId()!.Value).ToArray();
+        group.Members = group.Members.Append(payload.UserId).ToArray();
         await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
         return Ok();
     }
 
-    public class DeleteGroupPayload
+    [HttpDelete("{groupId}/member/{userId}")]
+    public async Task<IActionResult> RemoveMember(Guid groupId, Guid userId)
     {
-        public Guid GroupId { get; set; }
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("group not found");
+        }
+
+        var authResult = await _services.AuthService.AuthorizeAsync(
+            HttpContext.User,
+            group,
+            new ModifyGroupUserAuthorizationRequirement
+            {
+                UserId = userId,
+                Requirement = CrudRequirements.Delete,
+            }
+        );
+
+        if (!authResult.Succeeded)
+        {
+            return authResult.ToActionResult();
+        }
+
+        group.Members = group.Members.Where(x => x != userId).ToArray();
+        group.Owners = group.Owners.Where(x => x != userId).ToArray();
+        if (group.Owners.Length == 0)
+        {
+            return BadRequest("cannot remove last owner");
+        }
+        if (group.Members.Length == 0)
+        {
+            return BadRequest("cannot remove last member");
+        }
+        await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
+        return Ok();
     }
-    [HttpDelete]
-    public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupPayload payload)
+
+    [HttpDelete("{groupId:guid}")]
+    public async Task<IActionResult> DeleteGroup(Guid groupId)
     {
-        var group = await _services.TableClient.GetGroupIfExistsAsync(payload.GroupId);
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
         if (group == null)
         {
             return NotFound();
@@ -132,7 +164,7 @@ public class GroupController : ControllerBase
             return authResult.ToActionResult();
         }
 
-        await _services.TableClient.DeleteEntityAsync(group.Entity.PartitionKey, group.Entity.RowKey);
+        await _services.TableClient.DeleteGroupAsync(group);
         return Ok();
     }
 }

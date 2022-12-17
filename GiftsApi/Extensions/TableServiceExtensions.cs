@@ -29,6 +29,35 @@ public static class TableServiceExtensions
         return new Group { Entity = entity.Value };
     }
 
+    public static async Task DeleteGroupAsync(this TableClient table, Group group)
+    {
+        var wishlists = await table.QueryAsync<WishlistEntity>(filter: $"PartitionKey eq 'Group:{group.Id}:Wishlist'")
+            .Select(x => new Wishlist{Entity=x})
+            .ToListAsync();
+        foreach (var wishlist in wishlists)
+        {
+            await table.DeleteWishlistAsync(wishlist);
+        }
+        await table.DeleteEntityAsync(group.Entity.PartitionKey, group.Entity.RowKey, group.Entity.ETag);
+    }
+
+    public static async Task DeleteWishlistAsync(this TableClient table, Wishlist wishlist)
+    {
+        var cards = await table.QueryAsync<CardEntity>(filter: $"PartitionKey eq 'Group:{wishlist.GroupId}:Wishlist:{wishlist.Id}:Card'")
+            .Select(x => new Card{Entity=x})
+            .ToListAsync();
+        foreach (var card in cards)
+        {
+            await table.DeleteCardAsync(card);
+        }
+        await table.DeleteEntityAsync(wishlist.Entity.PartitionKey, wishlist.Entity.RowKey, wishlist.Entity.ETag);
+    }
+
+    public static async Task DeleteCardAsync(this TableClient table, Card card)
+    {
+        await table.DeleteEntityAsync(card.Entity.PartitionKey, card.Entity.RowKey, card.Entity.ETag);
+    }
+
     public static async Task<User?> GetUserIfExistsAsync(this TableClient table, Guid id)
     {
         var entity=  await table.GetEntityIfExistsAsync<UserEntity>("User", id.ToString());

@@ -17,8 +17,16 @@ public static class CrudRequirements
 
 public class JoinGroupAuthorizationRequirement : IAuthorizationRequirement
 {
-    public string Name = nameof(JoinGroupAuthorizationRequirement);
+    public Group Group { get; set; }
+    public Guid UserId {get; set;}
     public string UserProvidedPassword { get; set; }
+}
+
+public class ModifyGroupUserAuthorizationRequirement : IAuthorizationRequirement
+{
+    public Guid UserId {get; set;}
+    public OperationAuthorizationRequirement Requirement { get; set; }
+
 }
 
 public class GroupScopedOperationAuthorizationRequirement : IAuthorizationRequirement

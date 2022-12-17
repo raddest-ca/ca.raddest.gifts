@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 namespace GiftsApi.Auth;
 
 
-// https://learn.microsoft.com/en-us/aspnet/core/security/authorization/resourcebased?view=aspnetcore-7.0
 public class WishlistAuthorizationCrudHandler :
     AuthorizationHandler<GroupScopedOperationAuthorizationRequirement, Wishlist>
 {
@@ -28,7 +27,7 @@ public class WishlistAuthorizationCrudHandler :
 
         if (requirement.Requirement == CrudRequirements.Update || requirement.Requirement == CrudRequirements.Delete)
         {
-            if (!resource.Owners.Contains(userId.Value))
+            if (!resource.Owners.Contains(userId.Value) && !requirement.Group.Owners.Contains(userId.Value))
             {
                 context.Fail(new AuthorizationFailureReason(this, "user is not an owner of the wishlist"));
                 return Task.CompletedTask;

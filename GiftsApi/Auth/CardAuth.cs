@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace GiftsApi.Auth;
 
-
-// https://learn.microsoft.com/en-us/aspnet/core/security/authorization/resourcebased?view=aspnetcore-7.0
 public class CardAuthorizationCrudHandler :
     AuthorizationHandler<WishlistScopedOperationAuthorizationRequirement, Card>
 {

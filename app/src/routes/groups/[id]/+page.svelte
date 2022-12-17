@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
 	import { apiFetch } from "../../../api/client";
-	import { invalidateAll } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 	import { page } from "$app/stores";
 	import type { Card } from "../../../api/types";
     import SvelteMarkdown from "svelte-markdown";
+	import { auth } from "../../../stores/auth";
 
     export let data: PageData;
     $: console.log(data);
@@ -48,7 +49,7 @@
             method: "POST",
             body: JSON.stringify({
                 Content: content,
-                VisibleToListOwners: true,
+                VisibleToListOwners: false,
             }),
         });
         cardContentInputs[resp.id] = resp.content;
@@ -57,7 +58,7 @@
         addCardContentInputs[wishlistId] = "";
         await invalidateAll();
     }
-    async function addListOwner(wishlistId: string, ownerId: string) {
+    async function addWishlistOwner(wishlistId: string, ownerId: string) {
         await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
             method: "PATCH",
             body: JSON.stringify({
@@ -65,6 +66,15 @@
             }),
         });
         showWishlistAddOwnerEditor[wishlistId] = false;
+        await invalidateAll();
+    }
+    async function removeWishlistOwner(wishlistId: string, ownerId: string) {
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                Owners: data.wishlists[wishlistId].owners.filter(id => id !== ownerId),
+            }),
+        });
         await invalidateAll();
     }
     async function updateWishlistName(wishlistId: string, displayName: string) {
@@ -88,6 +98,16 @@
         showCardContentEditor[cardId] = false;
         await invalidateAll();
     }
+    async function setVisibleToOwners(wishlistId: string, cardId: string, visible: boolean) {
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card/${cardId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                VisibleToListOwners: visible,
+            }),
+        });
+        await invalidateAll();
+    }
+
     async function deleteCard(wishlistId: string, cardId: string) {
         await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}/card/${cardId}`, {
             method: "DELETE",
@@ -106,79 +126,176 @@
             callback();
         }
     }
+
+    async function removeUserFromGroup(userId: string) {
+        if (!window.confirm(`Are you sure you want to remove ${data.users[userId].displayName} from this group?`)) return;
+        await apiFetch(fetch, `/group/${groupId}/member/${userId}`, {
+            method: "DELETE",
+        });
+        if (userId == $auth.userId) {
+            await goto("/groups");
+        } else {
+            await invalidateAll();
+        }
+    }
+
+    async function deleteWishlist(wishlistId: string) {
+        if (!window.confirm(`Are you sure you want to delete this wishlist?`)) return;
+        await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
+            method: "DELETE",
+        });
+        await invalidateAll();
+    }
+
+    async function deleteGroup() {
+        if (!window.confirm(`Are you sure you want to delete this group?`)) return;
+        if (!window.confirm(`Are you sure you're sure you want to delete this group?`)) return;
+        await apiFetch(fetch, `/group/${groupId}`, {
+            method: "DELETE",
+        });
+        await goto("/groups");
+    }
 </script>
+
+<svelte:head>
+    <title>{data.group.displayName} - Group</title>
+</svelte:head>
 
 <h1 class="text-2xl font-bold">Group - {data.group.displayName}</h1>
 <hr class="my-1">
+<section>
+    <h1 class="text-xl font-bold mt-4">Members</h1>
+    <hr class="my-1">
+    <div class="flex flex-wrap">
+        {#each data.group.members as memberId}
+            {@const member = data.users[memberId]}
+            <div class="bg-slate-300 m-4 p-4 w-64">
+                <div class="flex flex-row">
+                    <div class="flex-grow relative">
+                        <h1 class="text-lg">{member.displayName}</h1>
+                        <p class="text-sm">{`${memberId === $auth.userId ? "you, " : ""}${data.group.owners.includes(memberId) ? "owner" : "member"}`}</p>
+                        <div class="absolute right-0 top-0">
+                            {#if memberId === $auth.userId || data.group.owners.includes($auth.userId)}
+                                <button title="Remove from group" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>removeUserFromGroup(memberId)}>
+                                    <i class="mi mi-circle-remove"><span class="u-sr-only">Remove from group</span></i>
+                                </button>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/each}
+</section>
 <section>
     <h1 class="text-xl font-bold mt-4">Wishlists</h1>
     <hr class="my-1">
     <div class="flex flex-wrap">
         {#each Object.values(data.wishlists) as wishlist}
-        <div class="bg-slate-300 m-4 p-4 w-64">
-            {#if showWishlistNameEditor[wishlist.id]}
-                <form on:submit={()=>updateWishlistName(wishlist.id, wishlistNameInputs[wishlist.id])}>
-                    <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={wishlistNameInputs[wishlist.id]} on:blur={()=>showWishlistNameEditor[wishlist.id] = false} use:initFocus/>
-                </form>
-            {:else}
-                <button on:click={()=>showWishlistNameEditor[wishlist.id] = true}>{wishlist.displayName}</button>
-            {/if}
-            <hr>
-            <ul>
-                {#each Object.values(data.cards[wishlist.id]) as card}
-                    <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm">
-                        {#if showCardContentEditor[card.id]}
-                            <form on:submit|preventDefault={()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id])}>
-                                <textarea
-                                    class="p-1 rounded-md shadow-lg"
-                                    placeholder="beans"
-                                    bind:value={cardContentInputs[card.id]}
-                                    on:blur={()=>showCardContentEditor[card.id] = false}
-                                    on:keydown={e => overrideShiftEnter(e, ()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id]))}
-                                    use:initFocus
-                                />
+            {@const canModifyWishlist = data.group.owners.includes($auth.userId) || wishlist.owners.includes($auth.userId)}
+            <div class="bg-slate-300 m-4 p-4 w-64">
+                <!-- wishlist title -->
+                <div>
+                    {#if canModifyWishlist}
+                        {#if showWishlistNameEditor[wishlist.id]}
+                            <form on:submit={()=>updateWishlistName(wishlist.id, wishlistNameInputs[wishlist.id])}>
+                                <input class="mt-1 p-1 rounded-md shadow-lg" placeholder="beans" bind:value={wishlistNameInputs[wishlist.id]} on:blur={()=>showWishlistNameEditor[wishlist.id] = false} use:initFocus/>
                             </form>
                         {:else}
-                            <button class="w-full text-left prose" on:click={()=>showCardContentEditor[card.id] = true}>
-                                <SvelteMarkdown bind:source={card.content} />
-                                <!-- {card.content} -->
-                            </button>
+                            <button on:click={()=>showWishlistNameEditor[wishlist.id] = true}><h1>{wishlist.displayName.trim() === "" ? "untitled wishlist" : wishlist.displayName}</h1></button>
+                            {#if wishlist.owners.includes($auth.userId) || data.group.owners.includes($auth.userId)}
+                                <button title="Remove from group" type="button" class="p-0.5 float-right hover:bg-slate-400 rounded-md" on:click={()=>deleteWishlist(wishlist.id)}>
+                                    <i class="mi mi-circle-remove"><span class="u-sr-only">Remove from group</span></i>
+                                </button>
+                            {/if}
                         {/if}
-                    </li>
-                {/each}
-            </ul>
-            {#if showWishlistAddCardEditor[wishlist.id]}
-                <div>
-                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
-                        <textarea
-                            class="mt-1 p-1 rounded-md shadow-lg"
-                            placeholder="beans"
-                            bind:value={addCardContentInputs[wishlist.id]}
-                            on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false}
-                            on:keydown={e => overrideShiftEnter(e, ()=>addCard(wishlist.id, addCardContentInputs[wishlist.id]))}
-                            use:initFocus
-                        />
-                        <button type="submit" class="hidden">Submit</button>
-                    </form>
-
+                    {:else}
+                        <h1>{wishlist.displayName.trim() === "" ? "untitled wishlist" : wishlist.displayName}</h1>
+                    {/if}
                 </div>
-            {/if}
-            <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>showWishlistAddCardEditor[wishlist.id]=true}>Add a card</button>
-            <button class="text-sm text-slate-400 hover:underline" on:click={()=>showWishlistAddOwnerEditor[wishlist.id]=true}>owned by {wishlist.owners.map(id => data.users[id].displayName).join(" and ")}</button>
-            {#if showWishlistAddOwnerEditor[wishlist.id]}
-                <div>
-                    <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
-                        <select class="p-1 rounded-md shadow-lg" bind:value={addOwnerUserIdInputs[wishlist.id]} use:initFocus>
-                            {#each Object.values(data.users) as user}
-                                <option value={user.id}>{user.displayName}</option>
-                            {/each}
-                        </select>
-                        <button type="button" class=" rounded-md p-1 bg-slate-200 hover:bg-slate-400" on:click={addListOwner(wishlist.id, addOwnerUserIdInputs[wishlist.id])}>Add owner</button>
-                    </form>
+                <hr>
+                <!-- cards -->
+                <ul>
+                    {#each Object.values(data.cards[wishlist.id]) as card}
+                        <li class="mt-1 p-1 bg-slate-200 text-gray-700 rounded-sm card relative" class:hidden-from-owner={!card.visibleToListOwners}>
+                            {#if showCardContentEditor[card.id]}
+                                <form on:submit|preventDefault={()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id])}>
+                                    <textarea
+                                        class="p-1 rounded-md shadow-lg w-full"
+                                        placeholder="beans"
+                                        bind:value={cardContentInputs[card.id]}
+                                        on:blur={()=>showCardContentEditor[card.id] = false}
+                                        on:keydown={e => overrideShiftEnter(e, ()=>updateCardContent(wishlist.id, card.id, cardContentInputs[card.id]))}
+                                        use:initFocus
+                                    />
+                                </form>
+                            {:else}
+                                <button class="text-left" on:click={()=>showCardContentEditor[card.id] = true}>
+                                    <div class="w-full h-full prose">
+                                        <SvelteMarkdown bind:source={card.content} />
+                                    </div>
+                                </button>
+                                <div class="card-actions absolute right-1 top-1">
+                                    <button title="Add a tag"  type="button" class="p-0.5 hover:bg-slate-400 rounded-md">
+                                        <i class="mi mi-tag"><span class="u-sr-only">Tag</span></i>
+                                    </button>
+                                    <button title="Hide from owner" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setVisibleToOwners(wishlist.id, card.id, !card.visibleToListOwners)}>
+                                        {#if card.visibleToListOwners}
+                                            <i class="mi mi-eye"><span class="u-sr-only">Hide from owner</span></i>
+                                        {:else}
+                                            <i class="mi mi-eye-off"><span class="u-sr-only">Show to owner</span></i>
+                                        {/if}
+                                    </button>
+                                </div>
+                            {/if}
+                        </li>
+                    {/each}
+                </ul>
+                <!-- add card -->
+                {#if showWishlistAddCardEditor[wishlist.id]}
+                    <div>
+                        <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
+                            <textarea
+                                class="mt-1 p-1 rounded-md shadow-lg"
+                                placeholder="beans"
+                                bind:value={addCardContentInputs[wishlist.id]}
+                                on:blur={()=>showWishlistAddCardEditor[wishlist.id] = false}
+                                on:keydown={e => overrideShiftEnter(e, ()=>addCard(wishlist.id, addCardContentInputs[wishlist.id]))}
+                                use:initFocus
+                            />
+                            <button type="submit" class="hidden">Submit</button>
+                        </form>
 
-                </div>
-            {/if}
-        </div>
+                    </div>
+                {/if}
+                <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>showWishlistAddCardEditor[wishlist.id]=true}>Add a card</button>
+                
+                <!-- manage owners -->
+                {#if canModifyWishlist}
+                    <button class="text-sm text-slate-400 hover:underline" on:click={()=>showWishlistAddOwnerEditor[wishlist.id]=!showWishlistAddOwnerEditor[wishlist.id]}>owned by {wishlist.owners.map(id => id == $auth.userId ? "you" : data.users[id].displayName).join(" and ")}</button>
+                    {#if showWishlistAddOwnerEditor[wishlist.id]}
+                        <div>
+                            <form on:submit|preventDefault={()=>addCard(wishlist.id, addCardContentInputs[wishlist.id])}>
+                                <select class="p-1 rounded-md shadow-lg w-1/2" bind:value={addOwnerUserIdInputs[wishlist.id]} use:initFocus>
+                                    {#each Object.values(data.users) as user}
+                                        <option value={user.id}>{user.displayName}</option>
+                                    {/each}
+                                </select>
+                                <button type="button" class=" rounded-md p-1 bg-slate-200 hover:bg-slate-400" on:click={()=>addWishlistOwner(wishlist.id, addOwnerUserIdInputs[wishlist.id])}>Add owner</button>
+                            </form>
+                            <ul>
+                                {#each wishlist.owners as ownerId}
+                                    <li class="mt-1">
+                                        <span class="inline-block w-1/2">{data.users[ownerId].displayName}</span>
+                                        <button type="button" class="rounded-md p-1 bg-slate-200 hover:bg-slate-400" on:click={()=>removeWishlistOwner(wishlist.id, ownerId)}>Remove</button>
+                                    </li>
+                                {/each}
+                            </ul>
+                        </div>
+                    {/if}
+                {:else}
+                    <span class="text-sm text-slate-400">owned by {wishlist.owners.map(id => id == $auth.userId ? "you" : data.users[id].displayName).join(" and ")}</span>
+                {/if}
+            </div>
         {/each}
     </div>
 </section>
@@ -196,3 +313,27 @@
     <hr class="my-2">
     <span>Invite code: <input class="bg-gray-800 text-white p-2 rounded-md text-ellipsis" bind:value={inviteCode}/> <button class="underline text-blue-500" type="button" on:click={()=>navigator.clipboard.writeText(inviteCode)}>(copy)</button></span>
 </section>
+<section>
+    <h1 class="text-xl font-bold mt-4">Group actions</h1>
+    <hr class="my-2">
+    <button class="rounded-xl bg-red-200 p-2 drop-shadow-lg" on:click|preventDefault={()=>deleteGroup()}>Delete group</button>
+</section>
+
+<style>
+    .card > .card-actions {
+        display: none;
+    }
+    .card:hover > .card-actions {
+        display: block;
+    }
+
+    .card.hidden-from-owner {
+        background: repeating-linear-gradient(
+            45deg,
+            #606cbc4f,
+            #606cbc4f 10px,
+            #4652980e 10px,
+            #4652980e 20px
+        );
+    }
+</style>
