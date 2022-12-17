@@ -139,6 +139,16 @@
         }
     }
 
+    async function setOwner(userId: string, owner: boolean) {
+        await apiFetch(fetch, `/group/${groupId}/member/${userId}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                IsOwner: owner,
+            })
+        });
+        await invalidateAll();
+    }
+
     async function deleteWishlist(wishlistId: string) {
         if (!window.confirm(`Are you sure you want to delete this wishlist?`)) return;
         await apiFetch(fetch, `/group/${groupId}/wishlist/${wishlistId}`, {
@@ -179,6 +189,17 @@
                                 <button title="Remove from group" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>removeUserFromGroup(memberId)}>
                                     <i class="mi mi-circle-remove"><span class="u-sr-only">Remove from group</span></i>
                                 </button>
+                            {/if}
+                            {#if data.group.owners.includes($auth.userId)}
+                                {#if data.group.owners.includes(memberId)}
+                                    <button title="Demote" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setOwner(memberId, false)}>
+                                        <i class="mi mi-chevron-double-down"><span class="u-sr-only">Demote</span></i>
+                                    </button>
+                                {:else}
+                                    <button title="Promote" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setOwner(memberId, true)}>
+                                        <i class="mi mi-chevron-double-up"><span class="u-sr-only">Promote</span></i>
+                                    </button>
+                                {/if}
                             {/if}
                         </div>
                     </div>
@@ -319,11 +340,13 @@
         <i class="mi mi-clipboard"><span class="u-sr-only">Copy code</span></i>
     </button></span>
 </section>
-<section>
-    <h1 class="text-xl font-bold mt-4">Group actions</h1>
-    <hr class="my-2">
-    <button class="rounded-xl bg-red-200 p-2 drop-shadow-lg" on:click|preventDefault={()=>deleteGroup()}>Delete group</button>
-</section>
+{#if data.group.owners.includes($auth.userId)}
+    <section>
+        <h1 class="text-xl font-bold mt-4">Group actions</h1>
+        <hr class="my-2">
+        <button class="rounded-xl bg-red-200 p-2 drop-shadow-lg" on:click|preventDefault={()=>deleteGroup()}>Delete group</button>
+    </section>
+{/if}
 
 <style>
     .card > .card-actions {

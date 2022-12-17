@@ -111,7 +111,7 @@ public class GroupController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("{groupId}/member/{userId}")]
+    [HttpDelete("{groupId:guid}/member/{userId:guid}")]
     public async Task<IActionResult> RemoveMember(Guid groupId, Guid userId)
     {
         var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
@@ -144,6 +144,51 @@ public class GroupController : ControllerBase
         if (group.Members.Length == 0)
         {
             return BadRequest("cannot remove last member");
+        }
+        await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
+        return Ok();
+    }
+
+    public class GroupMemberUpdatePayload
+    {
+        public bool IsOwner { get; set; }
+    }
+    [HttpPatch("{groupId:guid}/member/{userId:guid}")]
+    public async Task<IActionResult> UpdateMember(Guid groupId, Guid userId, [FromBody] GroupMemberUpdatePayload payload)
+    {
+        var group = await _services.TableClient.GetGroupIfExistsAsync(groupId);
+        if (group == null)
+        {
+            return BadRequest("group not found");
+        }
+
+        var authResult = await _services.AuthService.AuthorizeAsync(
+            HttpContext.User,
+            group,
+            new ModifyGroupUserAuthorizationRequirement
+            {
+                UserId = userId,
+                Requirement = CrudRequirements.Update,
+            }
+        );
+
+        if (!authResult.Succeeded)
+        {
+            return authResult.ToActionResult();
+        }
+
+        if (payload.IsOwner)
+        {
+            group.Owners = group.Owners.Append(userId).ToArray();
+        }
+        else
+        {
+            group.Owners = group.Owners.Where(x => x != userId).ToArray();
+        }
+
+        if (group.Owners.Length == 0)
+        {
+            return BadRequest("cannot remove last owner");
         }
         await _services.TableClient.UpdateEntityAsync(group.Entity, group.Entity.ETag);
         return Ok();
