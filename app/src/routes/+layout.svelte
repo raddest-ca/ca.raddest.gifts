@@ -17,7 +17,7 @@
 	<link rel="stylesheet" href="https://unpkg.com/mono-icons@1.0.5/iconfont/icons.css" >
 </svelte:head>
   
-<header class="sm:w-full md:w-2/3 bg-slate-500 m-auto">
+<header class="sm:w-full lg:w-2/3 bg-slate-500 m-auto">
     <nav>
         <a class="p-4 text-xl font-serif" href="/">Gift</a>
         <a class="p-4 hover:bg-slate-700 border-b-4 border-b-transparent hover:border-b-blue-300 underline inline-block" href="/">Home</a>
@@ -32,7 +32,7 @@
     </nav>
 </header>
 
-<div class="sm:w-full md:w-2/3 bg-amber-100 m-auto p-4">
+<div class="sm:w-full lg:w-2/3 bg-amber-100 m-auto p-4">
     <slot />
 </div>
 
