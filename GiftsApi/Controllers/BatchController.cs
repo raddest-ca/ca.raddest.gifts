@@ -59,6 +59,17 @@ public class BatchController : ControllerBase
                     .ToDictionaryAsync(x => x.Id)
             );
         }
+        foreach (var wishlistEntry in cards)
+        {
+            var wishlist = wishlists[wishlistEntry.Key];
+            if (wishlist.Owners.Contains(User.GetUserId()!.Value))
+            {
+                foreach (var card in wishlistEntry.Value.Values)
+                {
+                    card.Tags = card.Tags.Where((entry) => entry.Value).ToDictionary(entry => entry.Key, entry => entry.Value);
+                }
+            }
+        }
 
         
         var users = await group.Members

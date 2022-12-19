@@ -107,6 +107,9 @@
         <h1 class="text-2xl font-bold">Group - {data.group.displayName}</h1>
     {/if}
 {/if}
+<button title="Refresh" type="button" class="p-0.5 hover:bg-slate-400 rounded-md absolute right-4 top-16" on:click={invalidateAll}>
+    <i class="mi mi-refresh"><span class="u-sr-only">Refresh</span></i>
+</button>
 <hr class="my-1">
 
 <p>Cards use <a class="underline text-blue-400" href="https://www.markdownguide.org/cheat-sheet/">markdown</a> syntax.</p>

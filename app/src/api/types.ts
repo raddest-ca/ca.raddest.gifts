@@ -22,7 +22,8 @@ export interface Card {
 	wishlistId: string;
 	groupId: string;
 	content: string;
-	visibleToListOwners: boolean
+	visibleToListOwners: boolean;
+	tags: Record<string, boolean>;
 }
 
 declare global {

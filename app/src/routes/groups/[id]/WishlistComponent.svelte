@@ -95,8 +95,8 @@
             {:else}
                 <button on:click={()=>showDisplayNameEditor = true}><h1>{wishlist.displayName.trim() === "" ? "untitled wishlist" : wishlist.displayName}</h1></button>
                 {#if canModifyWishlist}
-                    <button title="Remove from group" type="button" class="p-0.5 float-right hover:bg-slate-400 rounded-md" on:click={deleteWishlist}>
-                        <i class="mi mi-circle-remove"><span class="u-sr-only">Remove from group</span></i>
+                    <button title="Delete wishlist" type="button" class="p-0.5 float-right hover:bg-slate-400 rounded-md" on:click={deleteWishlist}>
+                        <i class="mi mi-circle-remove"><span class="u-sr-only">Delete wishlist</span></i>
                     </button>
                 {/if}
             {/if}
@@ -113,20 +113,17 @@
     </ul>
     <!-- add card -->
     {#if showAddCardEditor}
-        <div>
-            <form on:submit|preventDefault={()=>addCard(addCardContentInput)}>
-                <textarea
-                    class="mt-1 p-1 rounded-md shadow-lg"
-                    placeholder="beans"
-                    bind:value={addCardContentInput}
-                    on:blur={()=>showAddCardEditor = false}
-                    on:keydown={e => overrideShiftEnter(e, ()=>addCard(addCardContentInput))}
-                    use:initFocus
-                />
-                <button type="submit" class="hidden">Submit</button>
-            </form>
-
-        </div>
+        <form on:submit|preventDefault={()=>addCard(addCardContentInput)}>
+            <textarea
+                class="mt-1 p-1 rounded-md shadow-lg w-full"
+                placeholder="beans"
+                bind:value={addCardContentInput}
+                on:blur={()=>showAddCardEditor = false}
+                on:keydown={e => overrideShiftEnter(e, ()=>addCard(addCardContentInput))}
+                use:initFocus
+            />
+            <button type="submit" class="hidden">Submit</button>
+        </form>
     {/if}
     <button type="button" class="text-slate-400 hover:bg-slate-500 hover:text-gray-700 p-1 mt-1 rounded-sm" on:click={()=>showAddCardEditor=true}>Add a card</button>
     
