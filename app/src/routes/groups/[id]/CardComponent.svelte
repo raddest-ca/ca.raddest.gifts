@@ -115,7 +115,7 @@
         <!-- show tags -->
         <div class="flex">
             {#each Object.entries(card.tags) as [tag, visible]}
-                <div class="flex m-0.5 p-0.5 pl-1 bg-yellow-300 rounded-md items-center" class:tag-hidden-from-owner={!visible}>
+                <div class="tag flex m-0.5 p-0.5 px-1 bg-yellow-300 rounded-md items-center" class:tag-hidden-from-owner={!visible}>
                     <span class="text-xs">{tag}</span>
                     <!-- hide visibility actions from owner -->
                     {#if !isOwner}
@@ -177,5 +177,9 @@
             #e8ff16 10px,
             #e8ff16 20px
         );
+    }
+
+    .tag:not(:hover) > button {
+        display:none
     }
 </style>
