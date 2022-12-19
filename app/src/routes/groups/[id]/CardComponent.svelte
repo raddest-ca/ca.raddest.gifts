@@ -113,10 +113,10 @@
             {/if}
         </div>
         <!-- show tags -->
-        <div>
+        <div class="flex">
             {#each Object.entries(card.tags) as [tag, visible]}
-                <div class="inline-block m-0.5 text-xs bg-yellow-300 rounded-md p-0.5" class:tag-hidden-from-owner={!visible}>
-                    <span>{tag}</span>
+                <div class="flex m-0.5 p-0.5 pl-1 bg-yellow-300 rounded-md items-center" class:tag-hidden-from-owner={!visible}>
+                    <span class="text-xs">{tag}</span>
                     <!-- hide visibility actions from owner -->
                     {#if !isOwner}
                         <button title="Toggle owner visibility" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setTagVisibility(tag, !visible)}>
