@@ -111,12 +111,16 @@
                     {/if}
                 </button>
             {/if}
+            
+            <button title="Delete card" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>deleteCard()}>
+                <i class="mi mi-circle-remove"><span class="u-sr-only">Delete card</span></i>
+            </button>
         </div>
         <!-- show tags -->
         <div class="flex">
             {#each Object.entries(card.tags) as [tag, visible]}
                 <div class="tag flex m-0.5 p-0.5 px-1 bg-yellow-300 rounded-md items-center" class:tag-hidden-from-owner={!visible}>
-                    <span class="text-xs">{tag}</span>
+                    <span class="text-xs mr-1">{tag}</span>
                     <!-- hide visibility actions from owner -->
                     {#if !isOwner}
                         <button title="Toggle owner visibility" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>setTagVisibility(tag, !visible)}>

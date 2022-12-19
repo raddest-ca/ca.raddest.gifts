@@ -217,7 +217,7 @@ public class CardController : ControllerBase
             return BadRequest("couldn't find card");
         }
 
-        if (card.Tags.ContainsKey(payload.Tag))
+        if (card.Tags.ContainsKey(payload.Tag) && card.Tags[payload.Tag] == payload.VisibleToListOwners)
         {
             return BadRequest("tag already exists");
         }
@@ -233,7 +233,7 @@ public class CardController : ControllerBase
             return authResult.ToActionResult();
         }
 
-        card.Tags.Add(payload.Tag, payload.VisibleToListOwners);
+        card.Tags[payload.Tag] = payload.VisibleToListOwners;
         await _services.TableClient.UpdateEntityAsync(card.Entity, card.Entity.ETag);
         return new JsonResult(card);
     }
