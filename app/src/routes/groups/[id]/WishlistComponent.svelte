@@ -86,7 +86,7 @@
 
 <div class="bg-slate-300 m-4 p-4 w-64 flex-grow">
     <!-- wishlist title -->
-    <div>
+    <div class="wishlist-title">
         {#if canModifyWishlist}
             {#if showDisplayNameEditor}
                 <form on:submit|preventDefault={updateDisplayName}>
@@ -95,7 +95,7 @@
             {:else}
                 <button on:click={()=>showDisplayNameEditor = true}><h1>{wishlist.displayName.trim() === "" ? "untitled wishlist" : wishlist.displayName}</h1></button>
                 {#if canModifyWishlist}
-                    <button title="Delete wishlist" type="button" class="p-0.5 float-right hover:bg-slate-400 rounded-md" on:click={deleteWishlist}>
+                    <button title="Delete wishlist" type="button" class="delete-button p-0.5 float-right hover:bg-slate-400 rounded-md" on:click={deleteWishlist}>
                         <i class="mi mi-circle-remove"><span class="u-sr-only">Delete wishlist</span></i>
                     </button>
                 {/if}
@@ -154,3 +154,9 @@
         <span class="text-sm text-slate-400">owned by {wishlist.owners.map(id => id == $auth.userId ? "you" : users[id].displayName).join(" and ")}</span>
     {/if}
 </div>
+
+<style>
+    .wishlist-title:not(:hover) .delete-button {
+        display: none;
+    }
+</style>

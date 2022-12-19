@@ -120,12 +120,12 @@
     <div class="flex flex-wrap">
         {#each data.group.members as memberId}
             {@const member = data.users[memberId]}
-            <div class="bg-slate-300 m-4 p-4 w-64 flex-grow">
+            <div class="member-card bg-slate-300 m-4 p-4 w-64 flex-grow">
                 <div class="flex flex-row">
                     <div class="relative flex-grow">
                         <h1 class="text-lg">{member.displayName}</h1>
                         <p class="text-sm">{`${memberId === $auth.userId ? "you, " : ""}${data.group.owners.includes(memberId) ? "owner" : "member"}`}</p>
-                        <div class="absolute right-0 top-0">
+                        <div class="member-actions absolute right-0 top-0">
                             {#if memberId === $auth.userId || canModifyGroup}
                                 <button title="Remove from group" type="button" class="p-0.5 hover:bg-slate-400 rounded-md" on:click={()=>removeUserFromGroup(memberId)}>
                                     <i class="mi mi-circle-remove"><span class="u-sr-only">Remove from group</span></i>
@@ -193,3 +193,10 @@
         <button class="rounded-xl bg-red-200 p-2 drop-shadow-lg" on:click|preventDefault={()=>deleteGroup()}>Delete group</button>
     </section>
 {/if}
+
+
+<style>
+    .member-card:not(:hover) .member-actions {
+        display: none;
+    }
+</style>
