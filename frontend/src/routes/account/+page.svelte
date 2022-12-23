@@ -71,7 +71,7 @@
     </div>
     <div class="mt-2">
         <label class="w-32 inline-block" for="password-verify">Password verify</label>
-        <input type="password-verify" class="bg-slate-200" id="password" bind:value={passwordVerify} />
+        <input type="password" class="bg-slate-200" id="password-verify" bind:value={passwordVerify} />
     </div>
     <span class="text-red-500">{warningText}</span>
     <br/>
