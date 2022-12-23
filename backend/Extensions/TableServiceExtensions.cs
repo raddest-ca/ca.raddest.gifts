@@ -67,7 +67,7 @@ public static class TableServiceExtensions
 
     public static async Task<User?> GetUserByUsernameIfExistsAsync(this TableClient table, string username)
     {
-        var entity = await table.QueryAsync<UserEntity>(filter: $"PartitionKey eq 'User' and Username eq '{username}'").FirstOrDefaultAsync();
+        var entity = await table.QueryAsync<UserEntity>(filter: $"PartitionKey eq 'User' and LoginName eq '{username}'").FirstOrDefaultAsync();
         if (entity == null) return null;
         return new User { Entity = entity };   
     }

@@ -67,13 +67,19 @@ public class UserController : ControllerBase
     {
         public string? DisplayName { get; set; }
         public string? Password { get; set; }
+        public string? LoginName {get; set;}
     }
+
     [HttpPatch]
     [Route("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserPayload payload)
     {
         if (payload.DisplayName != null && payload.DisplayName.Trim().Length == 0)
+        {
+            return BadRequest("display name empty");
+        }
+        if (payload.LoginName != null && payload.LoginName.Trim().Length == 0)
         {
             return BadRequest("display name empty");
         }
@@ -98,6 +104,16 @@ public class UserController : ControllerBase
         if (payload.Password != null)
         {
             resource.Password = BC.HashPassword(payload.Password);
+        }
+
+        if (payload.LoginName != null)
+        {
+            var existingUser = await _services.TableClient.GetUserByUsernameIfExistsAsync(payload.LoginName);
+            if (existingUser != null)
+            {
+                return Conflict("username already exists");
+            }
+            resource.LoginName = payload.LoginName;
         }
 
         _services.TableClient.UpdateEntity(resource.Entity, resource.Entity.ETag);

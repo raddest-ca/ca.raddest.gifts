@@ -26,12 +26,12 @@ public class User
         {
             PartitionKey = "User",
             RowKey = Id.ToString(),
-            Username = LoginName,
+            LoginName = LoginName,
             DisplayName = DisplayName,
             Password = Password,
             ETag = _eTag,
         };
-        set => (Id, LoginName, DisplayName, Password, _eTag) = (Guid.Parse(value.RowKey), value.Username, value.DisplayName, value.Password, value.ETag);
+        set => (Id, LoginName, DisplayName, Password, _eTag) = (Guid.Parse(value.RowKey), value.LoginName, value.DisplayName, value.Password, value.ETag);
     }
 }
 
@@ -39,7 +39,7 @@ public class UserEntity : ITableEntity
 {
     public string PartitionKey { get; set; }
     public string RowKey { get; set; }
-    public string Username { get; set; }
+    public string LoginName { get; set; }
     public string DisplayName { get; set; }
     public string Password { get; set; }
     public DateTimeOffset? Timestamp { get; set; }

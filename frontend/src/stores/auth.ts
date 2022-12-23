@@ -17,13 +17,18 @@ export class AuthData {
 	jwt: string | null = null;
 	refreshToken: string | null = null;
 
-	get name(): string | null {
+	get displayName(): string | null {
 		return this.jwtData?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ?? null;
+	}
+	get loginName(): string | null {
+		return this.jwtData?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ?? null;
 	}
 
 	get userId(): string | null {
 		return this.jwtData?.sub ?? null;
 	}
+
+
 
 	get jwtData(): JWT | null {
 		if (this.jwt == null) return null;
