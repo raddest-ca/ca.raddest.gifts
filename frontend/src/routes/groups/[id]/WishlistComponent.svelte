@@ -40,7 +40,7 @@
             method: "POST",
             body: JSON.stringify({
                 Content: content,
-                VisibleToListOwners: canModifyWishlist,
+                VisibleToListOwners: isWishlistOwner,
             }),
         });
         showAddCardEditor = false;
@@ -81,7 +81,8 @@
     let addOwnerInput = "";
     let displayNameInput = wishlist.displayName;
     $: canModifyGroup = group.owners.includes($auth.userId!);
-    $: canModifyWishlist = canModifyGroup || wishlist.owners.includes($auth.userId!)
+    $: isWishlistOwner = wishlist.owners.includes($auth.userId!);
+    $: canModifyWishlist = canModifyGroup || isWishlistOwner
 </script>
 
 <div class="bg-slate-300 m-4 p-4 w-64 flex-grow">
