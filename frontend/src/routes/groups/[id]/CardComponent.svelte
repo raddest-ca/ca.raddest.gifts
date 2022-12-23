@@ -164,26 +164,30 @@
     }
 
     .card-hidden-from-owner {
-        background: repeating-linear-gradient(
+        /* background: repeating-linear-gradient(
             45deg,
             #606cbc4f,
             #606cbc4f 10px,
             #4652980e 10px,
             #4652980e 20px
-        );
+        ); */
+        background-color: pink;
+        /* border: 2px dashed red; */
     }
     
     .tag-hidden-from-owner {
-        background: repeating-linear-gradient(
+        /* background: repeating-linear-gradient(
             45deg,
             #20b8ff,
             #20b8ff 10px,
             #e8ff16 10px,
             #e8ff16 20px
-        );
+        ); */
+        background-color: rgb(255, 77, 77);
+        /* border: 2px dashed red; */
     }
 
-    .tag:not(:hover) > button {
+    .card:not(:hover) .tag > button {
         display:none
     }
 </style>

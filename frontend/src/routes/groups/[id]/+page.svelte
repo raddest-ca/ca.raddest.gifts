@@ -112,7 +112,7 @@
 </button>
 <hr class="my-1">
 
-<p>Cards use <a class="underline text-blue-400" href="https://www.markdownguide.org/cheat-sheet/">markdown</a> syntax.</p>
+<p>Cards use <a class="underline text-blue-400" href="https://www.markdownguide.org/cheat-sheet/">markdown</a> syntax. Red cards and red tags are hidden from the wishlist owners.</p>
 
 <section>
     <h1 class="text-xl font-bold mt-4">Members</h1>
