@@ -14,7 +14,7 @@ builder.Configuration.AddAzureKeyVault(
     new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
     new DefaultAzureCredential(new DefaultAzureCredentialOptions
     {
-        ManagedIdentityClientId = builder.Configuration["ManagedIdentityClientId"]
+        ManagedIdentityClientId = builder.Configuration["ManagedIdentityClientId"],
     })
 );
 // config POCO
