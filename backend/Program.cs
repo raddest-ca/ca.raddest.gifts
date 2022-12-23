@@ -12,7 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add key vault config
 builder.Configuration.AddAzureKeyVault(
     new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
-    new DefaultAzureCredential()
+    new DefaultAzureCredential(new DefaultAzureCredentialOptions
+    {
+        ManagedIdentityClientId = builder.Configuration["ManagedIdentityClientId"]
+    })
 );
 // config POCO
 var config = new AppConfig();
