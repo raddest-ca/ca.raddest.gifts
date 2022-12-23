@@ -1,1 +1,1 @@
-docker build . --tag teamdman.azurecr.io/gifts-frontend:latest
+docker build --progress plain . --tag teamdman.azurecr.io/gifts-frontend:latest
