@@ -9,17 +9,21 @@
     const returnUrl = $page.url.searchParams.get("returnUrl") ?? "/";
 
     async function login() {
-        const resp = await apiFetch<{token:string; refreshToken: string}>(fetch, "/Token", {
-            method: "POST",
-            body: JSON.stringify({
-                UserLoginName: username,
-                UserPassword: password,
-            }),
-        });
-        $auth.jwt = resp.token;
-        $auth.refreshToken = resp.refreshToken;
-        auth.set($auth);
-        await goto(returnUrl);
+        try {
+            const resp = await apiFetch<{token:string; refreshToken: string}>(fetch, "/Token", {
+                method: "POST",
+                body: JSON.stringify({
+                    UserLoginName: username,
+                    UserPassword: password,
+                }),
+            });
+            $auth.jwt = resp.token;
+            $auth.refreshToken = resp.refreshToken;
+            auth.set($auth);
+            await goto(returnUrl);
+        } catch (e: any) {
+            alert(e.body.title + " -- " + e.body.detail);
+        }
     }
 
     // If we're already logged in, redirect to the return URL

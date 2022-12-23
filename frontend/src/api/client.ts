@@ -50,28 +50,24 @@ export async function apiFetch<T>(
 	path: string,
 	options: RequestInit = {},
 ): Promise<T> {
-	try {
-		if ($authData.expired && !refreshingJwt) await refreshJwt(fetch).catch(console.warn);
-		const resp = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
-			...options,
-			headers: {
-				...$authData.headers,
-				"Content-Type": "application/json",
-				...options.headers,
-			},
-		});
-		if (resp.ok) {
-			const text = await resp.text();
-			if (text.trim().length === 0) {
-				console.warn("apiFetch response empty, returning empty object");
-				return {} as T;
-			}
-			return JSON.parse(text);
-		} else {
-			throw await error(resp.status, "apiFetch response not ok: " + await resp.text());
+	if ($authData.expired && !refreshingJwt) await refreshJwt(fetch).catch(console.warn);
+	const resp = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+		...options,
+		headers: {
+			...$authData.headers,
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+	const text = await resp.text();
+	if (resp.ok) {
+		if (text.trim().length === 0) {
+			console.warn("apiFetch response empty, returning empty object");
+			return {} as T;
 		}
-	} catch (e) {
-		throw await error(400, "apiFetch errored: " + e.message + " --- " + JSON.stringify(e));
+		return JSON.parse(text);
+	} else {
+		throw error(400, JSON.parse(text));
 	}
 }
 
